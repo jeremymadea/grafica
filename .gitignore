@@ -1,1 +1,5 @@
 distribution
+/bin
+/.classpath
+/.gitignore
+/.project
