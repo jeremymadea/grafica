@@ -36,6 +36,8 @@ import processing.core.PShape;
 /**
  * Main class that controls the rest of the graphical elements (layers, axes,
  * title, limits).
+ * 
+ * @author Javier Graciá Carpio
  */
 public class GPlot implements PConstants {
     // The parent Processing applet
@@ -71,6 +73,11 @@ public class GPlot implements PConstants {
     protected final GAxis yAxis;
     protected final GAxis rightAxis;
     protected final GTitle title;
+
+    // Constants
+    public static final int VERTICAL = 0;
+    public static final int HORIZONTAL = 1;
+    public static final int BOTH = 2;
 
     /**
      * GPlot constructor
@@ -131,7 +138,7 @@ public class GPlot implements PConstants {
             // Add the layer to the list
             if (!sameId) {
                 newLayer.setDim(dim);
-                newLayer.setLimitsAndLog(xLim, yLim, xLog, yLog);
+                newLayer.setLimAndLog(xLim, yLim, xLog, yLog);
                 layerList.add(newLayer);
             } else {
                 PApplet.println("A layer with the same id exists. Please change the id and try to add it again.");
@@ -575,11 +582,11 @@ public class GPlot implements PConstants {
     }
 
     /**
-     * Shifts the plot coordinates in a way that after that the given plot
-     * physical value will be at the specified screen position
+     * Shifts the plot coordinates in a way that after that the given plot value
+     * will be at the specified screen position
      * 
      * @param value
-     *            the x and y plot physical value
+     *            the x and y plot value
      * @param xScreen
      *            x screen position in the parent Processing applet
      * @param yScreen
@@ -593,8 +600,8 @@ public class GPlot implements PConstants {
     }
 
     /**
-     * Centers the plot coordinates at the plot value at the specified screen
-     * position
+     * Centers the plot coordinates at the plot value that is at the specified
+     * screen position
      * 
      * @param xScreen
      *            x screen position in the parent Processing applet
@@ -612,7 +619,8 @@ public class GPlot implements PConstants {
      * Initializes the histograms in all the plot layers
      * 
      * @param histType
-     *            the type of histogram to use. It can be GHistogram.VERTICAL or GHistogram.HORIZONTAL
+     *            the type of histogram to use. It can be GPlot.VERTICAL or
+     *            GPlot.HORIZONTAL
      */
     public void startHistograms(int histType) {
         mainLayer.startHistogram(histType);
@@ -622,10 +630,13 @@ public class GPlot implements PConstants {
         }
     }
 
+    /**
+     * Draws the plot on the screen with default parameters
+     */
     public void defaultDraw() {
         beginDraw();
         drawBackground();
-        drawInnerRegion();
+        drawBox();
         drawXAxis();
         drawYAxis();
         drawTitle();
@@ -634,15 +645,28 @@ public class GPlot implements PConstants {
         endDraw();
     }
 
+    /**
+     * Prepares the environment to start drawing the different plot components
+     * (points, axes, title, etc). Use endDraw() to return the sketch to its
+     * original state
+     */
     public void beginDraw() {
+        parent.pushStyle();
         parent.pushMatrix();
         parent.translate(pos[0] + mar[1], pos[1] + mar[2] + dim[1]);
     }
 
+    /**
+     * Returns the sketch to the state that it had before calling beginDraw()
+     */
     public void endDraw() {
         parent.popMatrix();
+        parent.popStyle();
     }
 
+    /**
+     * Draws the plot background. This includes the box area and the margins
+     */
     public void drawBackground() {
         parent.pushStyle();
         parent.fill(bgColor);
@@ -651,7 +675,10 @@ public class GPlot implements PConstants {
         parent.popStyle();
     }
 
-    public void drawInnerRegion() {
+    /**
+     * Draws the box area. This doesn't include the plot margins
+     */
+    public void drawBox() {
         parent.pushStyle();
         parent.fill(boxBgColor);
         parent.stroke(boxLineColor);
@@ -661,26 +688,44 @@ public class GPlot implements PConstants {
         parent.popStyle();
     }
 
+    /**
+     * Draws the x axis
+     */
     public void drawXAxis() {
         xAxis.draw();
     }
 
-    public void drawYAxis() {
-        yAxis.draw();
-    }
-
+    /**
+     * Draws the top axis
+     */
     public void drawTopAxis() {
         topAxis.draw();
     }
 
+    /**
+     * Draws the y axis
+     */
+    public void drawYAxis() {
+        yAxis.draw();
+    }
+
+    /**
+     * Draws the right axis
+     */
     public void drawRightAxis() {
         rightAxis.draw();
     }
 
+    /**
+     * Draws the title
+     */
     public void drawTitle() {
         title.draw();
     }
 
+    /**
+     * Draws the points from all layers in the plot
+     */
     public void drawPoints() {
         mainLayer.drawPoints();
 
@@ -689,30 +734,73 @@ public class GPlot implements PConstants {
         }
     }
 
-    public void drawPoints(PShape s) {
-        mainLayer.drawPoints(s);
+    /**
+     * Draws the points from all layers in the plot
+     * 
+     * @param pointShape
+     *            the shape that should be used to represent the points
+     */
+    public void drawPoints(PShape pointShape) {
+        mainLayer.drawPoints(pointShape);
 
         for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).drawPoints(s);
+            layerList.get(i).drawPoints(pointShape);
         }
     }
 
-    public void drawPoint(GPoint p, int col, float size) {
-        mainLayer.drawPoint(p, col, size);
+    /**
+     * Draws a point in the plot
+     * 
+     * @param point
+     *            the point to draw
+     * @param pointColor
+     *            color to use
+     * @param pointSize
+     *            point size in pixels
+     */
+    public void drawPoint(GPoint point, int pointColor, float pointSize) {
+        mainLayer.drawPoint(point, pointColor, pointSize);
     }
 
-    public void drawPoint(GPoint p) {
-        mainLayer.drawPoint(p);
+    /**
+     * Draws a point in the plot
+     * 
+     * @param point
+     *            the point to draw
+     */
+    public void drawPoint(GPoint point) {
+        mainLayer.drawPoint(point);
     }
 
-    public void drawPoint(GPoint p, PShape s) {
-        mainLayer.drawPoint(p, s);
+    /**
+     * Draws a point in the plot
+     * 
+     * @param point
+     *            the point to draw
+     * @param pointShape
+     *            the shape that should be used to represent the point
+     */
+    public void drawPoint(GPoint point, PShape pointShape) {
+        mainLayer.drawPoint(point, pointShape);
     }
 
-    public void drawPoint(GPoint p, PShape s, int col) {
-        mainLayer.drawPoint(p, s, col);
+    /**
+     * Draws a point in the plot
+     * 
+     * @param point
+     *            the point to draw
+     * @param pointShape
+     *            the shape that should be used to represent the points
+     * @param pointColor
+     *            color to use
+     */
+    public void drawPoint(GPoint point, PShape pointShape, int pointColor) {
+        mainLayer.drawPoint(point, pointShape, pointColor);
     }
 
+    /**
+     * Draws lines connecting the points from all layers in the plot
+     */
     public void drawLines() {
         mainLayer.drawLines();
 
@@ -721,89 +809,197 @@ public class GPlot implements PConstants {
         }
     }
 
-    public void drawLine(GPoint p1, GPoint p2, int col, float lw) {
-        mainLayer.drawLine(p1, p2, col, lw);
+    /**
+     * Draws a line in the plot, defined by two extreme points
+     * 
+     * @param point1
+     *            first point
+     * @param point2
+     *            second point
+     * @param lineColor
+     *            line color
+     * @param lineWidth
+     *            line width
+     */
+    public void drawLine(GPoint point1, GPoint point2, int lineColor, float lineWidth) {
+        mainLayer.drawLine(point1, point2, lineColor, lineWidth);
     }
 
-    public void drawLine(GPoint p1, GPoint p2) {
-        mainLayer.drawLine(p1, p2);
+    /**
+     * Draws a line in the plot, defined by two extreme points
+     * 
+     * @param point1
+     *            first point
+     * @param point2
+     *            second point
+     */
+    public void drawLine(GPoint point1, GPoint point2) {
+        mainLayer.drawLine(point1, point2);
     }
 
-    public void drawHorizontalLine(float val, int col, float lw) {
-        mainLayer.drawHorizontalLine(val, col, lw);
+    /**
+     * Draws a line in the plot, defined by the slope and the cut in the y axis
+     * 
+     * @param slope
+     *            the line slope
+     * @param yCut
+     *            the line y axis cut
+     * @param lineColor
+     *            line color
+     * @param lineWidth
+     *            line width
+     */
+    public void drawLine(float slope, float yCut, int lineColor, float lineWidth) {
+        mainLayer.drawLine(slope, yCut, lineColor, lineWidth);
     }
 
-    public void drawHorizontalLine(float val) {
-        mainLayer.drawHorizontalLine(val);
+    /**
+     * Draws a line in the plot, defined by the slope and the cut in the y axis
+     * 
+     * @param slope
+     *            the line slope
+     * @param yCut
+     *            the line y axis cut
+     */
+    public void drawLine(float slope, float yCut) {
+        mainLayer.drawLine(slope, yCut);
     }
 
-    public void drawVerticalLine(float val, int col, float lw) {
-        mainLayer.drawVerticalLine(val, col, lw);
+    /**
+     * Draws an horizontal line in the plot
+     * 
+     * @param value
+     *            line horizontal value
+     * @param lineColor
+     *            line color
+     * @param lineWidth
+     *            line width
+     */
+    public void drawHorizontalLine(float value, int lineColor, float lineWidth) {
+        mainLayer.drawHorizontalLine(value, lineColor, lineWidth);
     }
 
-    public void drawVerticalLine(float val) {
-        mainLayer.drawVerticalLine(val);
+    /**
+     * Draws an horizontal line in the plot
+     * 
+     * @param value
+     *            line horizontal value
+     */
+    public void drawHorizontalLine(float value) {
+        mainLayer.drawHorizontalLine(value);
     }
 
-    public void drawInclinedLine(float slope, float xCut, int col, float lw) {
-        mainLayer.drawInclinedLine(slope, xCut, col, lw);
+    /**
+     * Draws a vertical line in the plot
+     * 
+     * @param value
+     *            line vertical value
+     * @param lineColor
+     *            line color
+     * @param lineWidth
+     *            line width
+     */
+    public void drawVerticalLine(float value, int lineColor, float lineWidth) {
+        mainLayer.drawVerticalLine(value, lineColor, lineWidth);
     }
 
-    public void drawInclinedLine(float slope, float xCut) {
-        mainLayer.drawInclinedLine(slope, xCut);
+    /**
+     * Draws a vertical line in the plot
+     * 
+     * @param value
+     *            line vertical value
+     */
+    public void drawVerticalLine(float value) {
+        mainLayer.drawVerticalLine(value);
     }
 
-    public void drawFilledLines(String type, float referenceValue) {
-        mainLayer.drawFilledLines(type, referenceValue);
+    /**
+     * Draws filled contours connecting the points from all layers in the plot
+     * and a reference value
+     * 
+     * @param contourType
+     *            the type of contours to use. It can be GPlot.VERTICAL or
+     *            GPlot.HORIZONTAL
+     * @param referenceValue
+     *            the reference value to use to close the contour
+     */
+    public void drawFilledContours(int contourType, float referenceValue) {
+        mainLayer.drawFilledContours(contourType, referenceValue);
 
         for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).drawFilledLines(type, referenceValue);
+            layerList.get(i).drawFilledContours(contourType, referenceValue);
         }
     }
 
-    public void drawLabel(GPoint p) {
-        mainLayer.drawLabel(p);
-    }
-
-    public void drawLabelsAt(float x, float y) {
-        float[] screenPos = getPlotPosAt(x, y);
-        mainLayer.drawLabelAtScreenPos(screenPos[0], screenPos[1]);
+    /**
+     * Draws the labels of the points in the layers that are close to a given
+     * screen position
+     * 
+     * @param xScreen
+     *            x screen position in the parent Processing applet
+     * @param yScreen
+     *            y screen position in the parent Processing applet
+     */
+    public void drawLabelsAt(float xScreen, float yScreen) {
+        float[] plotPos = getPlotPosAt(xScreen, yScreen);
+        mainLayer.drawLabelAtPlotPos(plotPos[0], plotPos[1]);
 
         for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).drawLabelAtScreenPos(screenPos[0], screenPos[1]);
+            layerList.get(i).drawLabelAtPlotPos(plotPos[0], plotPos[1]);
         }
     }
 
-    public void drawGridLines(String type) {
+    /**
+     * Draws the point label
+     * 
+     * @param point
+     *            the point
+     */
+    public void drawLabel(GPoint point) {
+        mainLayer.drawLabel(point);
+    }
+
+    /**
+     * Draws lines connecting the horizontal and vertical axis ticks
+     * 
+     * @param gridType
+     *            the type of grid to use. It could be GPlot.HORIZONTAL,
+     *            GPlot.VERTICAL or GPlot.BOTH
+     */
+    public void drawGridLines(int gridType) {
         parent.pushStyle();
         parent.noFill();
         parent.stroke(gridLineColor);
         parent.strokeWeight(gridLineWidth);
         parent.strokeCap(SQUARE);
 
-        if (type.equals("both") || type.equals("vertical")) {
-            float[] xScreenTicks = xAxis.getScreenTicksRef();
+        if (gridType == BOTH || gridType == VERTICAL) {
+            float[] xPlotTicks = xAxis.getPlotTicksRef();
 
-            for (int i = 0; i < xScreenTicks.length; i++) {
-                if (xScreenTicks[i] >= 0 && xScreenTicks[i] <= dim[0]) {
-                    parent.line(xScreenTicks[i], 0, xScreenTicks[i], -dim[1]);
+            for (int i = 0; i < xPlotTicks.length; i++) {
+                if (xPlotTicks[i] >= 0 && xPlotTicks[i] <= dim[0]) {
+                    parent.line(xPlotTicks[i], 0, xPlotTicks[i], -dim[1]);
                 }
             }
         }
 
-        if (type.equals("both") || type.equals("horizontal")) {
-            float[] yScreenTicks = yAxis.getScreenTicksRef();
+        if (gridType == BOTH || gridType == HORIZONTAL) {
+            float[] yPlotTicks = yAxis.getPlotTicksRef();
 
-            for (int i = 0; i < yScreenTicks.length; i++) {
-                if (-yScreenTicks[i] >= 0 && -yScreenTicks[i] <= dim[1]) {
-                    parent.line(0, yScreenTicks[i], dim[0], yScreenTicks[i]);
+            for (int i = 0; i < yPlotTicks.length; i++) {
+                if (-yPlotTicks[i] >= 0 && -yPlotTicks[i] <= dim[1]) {
+                    parent.line(0, yPlotTicks[i], dim[0], yPlotTicks[i]);
                 }
             }
         }
+
         parent.popStyle();
     }
 
-    public void drawHistogram() {
+    /**
+     * Draws the histograms of all layers
+     */
+    public void drawHistograms() {
         mainLayer.drawHistogram();
 
         for (int i = 0; i < layerList.size(); i++) {
@@ -811,27 +1007,57 @@ public class GPlot implements PConstants {
         }
     }
 
-    public void drawPolygon(GPointsArray poly, int col) {
-        mainLayer.drawPolygon(poly, col);
+    /**
+     * Draws a polygon defined by a set of points
+     * 
+     * @param polygonPoints
+     *            the points that define the polygon
+     * @param polygonColor
+     *            the color to use to draw the polygon (contour and background)
+     */
+    public void drawPolygon(GPointsArray polygonPoints, int polygonColor) {
+        mainLayer.drawPolygon(polygonPoints, polygonColor);
     }
 
+    /**
+     * Draws an annotation at a given plot value
+     * 
+     * @param text
+     *            the annotation text
+     * @param x
+     *            x plot value
+     * @param y
+     *            y plot value
+     * @param horAlign
+     *            text horizontal alignment. It can be RIGHT, LEFT or CENTER
+     * @param verAlign
+     *            text vertical alignment. It can be TOP, BOTTOM or CENTER
+     */
     public void drawAnnotation(String text, float x, float y, int horAlign, int verAlign) {
         mainLayer.drawAnnotation(text, x, y, horAlign, verAlign);
     }
 
-    //
-    // Setters
-    // //////////
-
+    /**
+     * Sets the plot position
+     * 
+     * @param newPos
+     *            the new plot position
+     */
     public void setPos(float[] newPos) {
         if (newPos != null && newPos.length == 2) {
             pos = newPos.clone();
         }
     }
 
+    /**
+     * Sets the plot outer dimensions
+     * 
+     * @param newOuterDim
+     *            the new plot outer dimensions
+     */
     public void setOuterDim(float[] newOuterDim) {
         if (newOuterDim != null && newOuterDim.length == 2 && newOuterDim[0] > 0 && newOuterDim[1] > 0) {
-            // Make sure that the new inner dimensions are positive
+            // Make sure that the new plot dimensions are positive
             float[] newDim = new float[] { newOuterDim[0] - mar[1] - mar[3], newOuterDim[1] - mar[0] - mar[2] };
 
             if (newDim[0] > 0 && newDim[1] > 0) {
@@ -853,9 +1079,15 @@ public class GPlot implements PConstants {
         }
     }
 
+    /**
+     * Sets the plot margins
+     * 
+     * @param newMar
+     *            the new plot margins
+     */
     public void setMar(float[] newMar) {
         if (newMar != null && newMar.length == 4) {
-            // Make sure that the new inner dimensions are positive
+            // Make sure that the new dimensions are positive
             float[] newDim = new float[] { outerDim[0] - newMar[1] - newMar[3], outerDim[1] - newMar[0] - newMar[2] };
 
             if (newDim[0] > 0 && newDim[1] > 0) {
@@ -877,9 +1109,15 @@ public class GPlot implements PConstants {
         }
     }
 
+    /**
+     * Sets the plot box dimensions
+     * 
+     * @param newDim
+     *            the new plot box dimensions
+     */
     public void setDim(float[] newDim) {
         if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
-            // Make sure that the new dimensions are positive
+            // Make sure that the new outer dimensions are positive
             float[] newOuterDim = new float[] { newDim[0] + mar[1] + mar[3], newDim[1] + mar[0] + mar[2] };
 
             if (newOuterDim[0] > 0 && newOuterDim[1] > 0) {
@@ -901,9 +1139,15 @@ public class GPlot implements PConstants {
         }
     }
 
+    /**
+     * Sets the horizontal axes limits
+     * 
+     * @param newXLim
+     *            the new horizontal axes limits
+     */
     public void setXlim(float[] newXLim) {
         if (newXLim != null && newXLim.length == 2 && newXLim[1] != newXLim[0]) {
-            // Make sure the new limit makes sense
+            // Make sure the new limits makes sense
             if (xLog && (newXLim[0] <= 0 || newXLim[1] <= 0)) {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
@@ -932,9 +1176,15 @@ public class GPlot implements PConstants {
         }
     }
 
+    /**
+     * Sets the vertical axes limits
+     * 
+     * @param newYLim
+     *            the new vertical axes limits
+     */
     public void setYlim(float[] newYLim) {
         if (newYLim != null && newYLim.length == 2 && newYLim[1] != newYLim[0]) {
-            // Make sure the new limit makes sense
+            // Make sure the new limits makes sense
             if (yLog && (newYLim[0] <= 0 || newYLim[1] <= 0)) {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
@@ -963,28 +1213,47 @@ public class GPlot implements PConstants {
         }
     }
 
+    /**
+     * Sets if the horizontal axes limits are fixed or not
+     * 
+     * @param newFixedXLim
+     *            the fixed condition for the horizontal axes
+     */
     public void setFixedXLim(boolean newFixedXLim) {
         fixedXLim = newFixedXLim;
     }
 
+    /**
+     * Sets if the vertical axes limits are fixed or not
+     * 
+     * @param newFixedYLim
+     *            the fixed condition for the vertical axes
+     */
     public void setFixedYLim(boolean newFixedYLim) {
         fixedYLim = newFixedYLim;
     }
 
-    public void setLog(String log) {
+    /**
+     * Sets if the scale for the horizontal and vertical axes is logarithmic or
+     * not
+     * 
+     * @param logType
+     *            the type of scale for the horizontal and vertical axes
+     */
+    public void setLogScale(String logType) {
         boolean newXLog = xLog;
         boolean newYLog = yLog;
 
-        if (log.equals("xy") || log.equals("yx")) {
+        if (logType.equals("xy") || logType.equals("yx")) {
             newXLog = true;
             newYLog = true;
-        } else if (log.equals("x")) {
+        } else if (logType.equals("x")) {
             newXLog = true;
             newYLog = false;
-        } else if (log.equals("y")) {
+        } else if (logType.equals("y")) {
             newXLog = false;
             newYLog = true;
-        } else if (log.equals("")) {
+        } else if (logType.equals("")) {
             newXLog = false;
             newYLog = false;
         }
@@ -996,12 +1265,15 @@ public class GPlot implements PConstants {
             yLog = newYLog;
 
             // Unfix the limits if the old ones don't make sense
-            if (xLog && fixedXLim && (xLim[0] <= 0 || xLim[1] <= 0))
+            if (xLog && fixedXLim && (xLim[0] <= 0 || xLim[1] <= 0)) {
                 fixedXLim = false;
-            if (yLog && fixedYLim && (yLim[0] <= 0 || yLim[1] <= 0))
-                fixedYLim = false;
+            }
 
-            // Calculate the new limmits if needed
+            if (yLog && fixedYLim && (yLim[0] <= 0 || yLim[1] <= 0)) {
+                fixedYLim = false;
+            }
+
+            // Calculate the new limits if needed
             if (!fixedXLim) {
                 xLim = obtainXLim(mainLayer.getPointsRef());
             }
@@ -1017,45 +1289,87 @@ public class GPlot implements PConstants {
             rightAxis.setLimAndLog(yLim, yLog);
 
             // Update the layers
-            mainLayer.setLimitsAndLog(xLim, yLim, xLog, yLog);
+            mainLayer.setLimAndLog(xLim, yLim, xLog, yLog);
 
             for (int i = 0; i < layerList.size(); i++) {
-                layerList.get(i).setLimitsAndLog(xLim, yLim, xLog, yLog);
+                layerList.get(i).setLimAndLog(xLim, yLim, xLog, yLog);
             }
         }
     }
 
+    /**
+     * Sets the plot background color
+     * 
+     * @param newBgColor
+     *            the new plot background color
+     */
     public void setBgColor(int newBgColor) {
         bgColor = newBgColor;
     }
 
-    public void setInnerBgColor(int newInnerBgColor) {
-        boxBgColor = newInnerBgColor;
+    /**
+     * Sets the box background color
+     * 
+     * @param newBoxBgColor
+     *            the new box background color
+     */
+    public void setBoxBgColor(int newBoxBgColor) {
+        boxBgColor = newBoxBgColor;
     }
 
-    public void setInnerLineColor(int newInnerLineColor) {
-        boxLineColor = newInnerLineColor;
+    /**
+     * Sets the box line color
+     * 
+     * @param newBoxLineColor
+     *            the new box background color
+     */
+    public void setBoxLineColor(int newBoxLineColor) {
+        boxLineColor = newBoxLineColor;
     }
 
-    public void setInnerLineWidth(float newInnerLineWidth) {
-        if (newInnerLineWidth > 0) {
-            boxLineWidth = newInnerLineWidth;
+    /**
+     * Sets the box line width
+     * 
+     * @param newBoxLineWidth
+     *            the new box line width
+     */
+    public void setBoxLineWidth(float newBoxLineWidth) {
+        if (newBoxLineWidth > 0) {
+            boxLineWidth = newBoxLineWidth;
         }
     }
 
+    /**
+     * Sets the grid line color
+     * 
+     * @param newGridLineColor
+     *            the new grid line color
+     */
     public void setGridLineColor(int newGridLineColor) {
         gridLineColor = newGridLineColor;
     }
 
+    /**
+     * Sets the grid line width
+     * 
+     * @param newGridLineWidth
+     *            the new grid line width
+     */
     public void setGridLineWidth(float newGridLineWidth) {
         if (newGridLineWidth > 0) {
             gridLineWidth = newGridLineWidth;
         }
     }
 
+    /**
+     * Sets the points for the main layer
+     * 
+     * @param points
+     *            the new points for the main layer
+     */
     public void setPoints(GPointsArray points) {
         if (points != null) {
-            // Calculate the new limmits and update the axes if needed
+            // Calculate the new limits and update the axes if needed
             if (!fixedXLim) {
                 xLim = obtainXLim(points);
                 xAxis.setLim(xLim);
@@ -1080,62 +1394,163 @@ public class GPlot implements PConstants {
         }
     }
 
+    /**
+     * Sets the point colors for the main layer
+     * 
+     * @param pointColors
+     *            the point colors for the main layer
+     */
     public void setPointColors(int[] pointColors) {
         mainLayer.setPointColors(pointColors);
     }
 
+    /**
+     * Sets the point sizes for the main layer
+     * 
+     * @param pointSizes
+     *            the point sizes for the main layer
+     */
     public void setPointSizes(float[] pointSizes) {
         mainLayer.setPointSizes(pointSizes);
     }
 
+    /**
+     * Sets the line color for the main layer
+     * 
+     * @param lineColor
+     *            the line color for the main layer
+     */
     public void setLineColor(int lineColor) {
         mainLayer.setLineColor(lineColor);
     }
 
+    /**
+     * Sets the line width for the main layer
+     * 
+     * @param lineWidth
+     *            the line with for the main layer
+     */
     public void setLineWidth(float lineWidth) {
         mainLayer.setLineWidth(lineWidth);
     }
 
-    public void setHistZeroPoint(GPoint zeroPoint) {
-        mainLayer.setHistZeroPoint(zeroPoint);
+    /**
+     * Sets the base point for the histogram in the main layer
+     * 
+     * @param basePoint
+     *            the base point for the histogram in the main layer
+     */
+    public void setHistBasePoint(GPoint basePoint) {
+        mainLayer.setHistBasePoint(basePoint);
     }
 
+    /**
+     * Sets the histogram type for the histogram in the main layer
+     * 
+     * @param histType
+     *            the histogram type for the histogram in the main layer. It can
+     *            be GPlot.HORIZONTAL or GPlot.VERTICAL
+     */
     public void setHistType(int histType) {
         mainLayer.setHistType(histType);
     }
 
+    /**
+     * Sets if the histogram in the main layer is visible or not
+     * 
+     * @param visible
+     *            if true, the histogram is visible
+     */
     public void setHistVisible(boolean visible) {
         mainLayer.setHistVisible(visible);
     }
 
+    /**
+     * Sets if the labels of the histogram in the main layer will be drawn or
+     * not
+     * 
+     * @param drawHistLabels
+     *            if true, the histogram labels will be drawn
+     */
     public void setDrawHistLabels(boolean drawHistLabels) {
         mainLayer.setDrawHistLabels(drawHistLabels);
     }
 
+    /**
+     * Sets the label background color of the points in the main layer
+     * 
+     * @param labelBgColor
+     *            the label background color of the points in the main layer
+     */
     public void setLabelBgColor(int labelBgColor) {
         mainLayer.setLabelBgColor(labelBgColor);
     }
 
+    /**
+     * Sets the label separation of the points in the main layer
+     * 
+     * @param labelSeparation
+     *            the label separation of the points in the main layer
+     */
     public void setLabelSeparation(float[] labelSeparation) {
         mainLayer.setLabelSeparation(labelSeparation);
     }
 
+    /**
+     * Sets the name of the font that is used in the main layer
+     * 
+     * @param fontName
+     *            the name of the font that will be used in the main layer
+     */
     public void setFontName(String fontName) {
         mainLayer.setFontName(fontName);
     }
 
+    /**
+     * Sets the color of the font that is used in the main layer
+     * 
+     * @param fontColor
+     *            the color of the font that will be used in the main layer
+     */
     public void setFontColor(int fontColor) {
         mainLayer.setFontColor(fontColor);
     }
 
+    /**
+     * Sets the size of the font that is used in the main layer
+     * 
+     * @param fontSize
+     *            the size of the font that will be used in the main layer
+     */
     public void setFontSize(int fontSize) {
         mainLayer.setFontSize(fontSize);
     }
 
+    /**
+     * Sets the properties of the font that is used in the main layer
+     * 
+     * @param fontName
+     *            the name of the font that will be used in the main layer
+     * @param fontColor
+     *            the color of the font that will be used in the main layer
+     * @param fontSize
+     *            the color of the font that will be used in the main layer
+     */
     public void setFontProperties(String fontName, int fontColor, int fontSize) {
         mainLayer.setFontProperties(fontName, fontColor, fontSize);
     }
 
+    /**
+     * Sets the properties of the font that will be used in all plot elements
+     * (layer, axes, title, histogram)
+     * 
+     * @param fontName
+     *            the name of the font that will be used in all plot elements
+     * @param fontColor
+     *            the color of the font that will be used in all plot elements
+     * @param fontSize
+     *            the color of the font that will be used in all plot elements
+     */
     public void setAllFontProperties(String fontName, int fontColor, int fontSize) {
         xAxis.setAllFontProperties(fontName, fontColor, fontSize);
         topAxis.setAllFontProperties(fontName, fontColor, fontSize);
@@ -1150,54 +1565,113 @@ public class GPlot implements PConstants {
         }
     }
 
-    //
-    // Getters
-    // //////////
-
+    /**
+     * Returns the plot position
+     * 
+     * @return the plot position
+     */
     public float[] getPos() {
         return pos.clone();
     }
 
-    public float[] getDim() {
+    /**
+     * Returns the plot outer dimensions
+     * 
+     * @return the plot outer dimensions
+     */
+    public float[] getOuterDim() {
         return outerDim.clone();
     }
 
+    /**
+     * Returns the plot margins
+     * 
+     * @return the plot margins
+     */
     public float[] getMar() {
         return mar.clone();
     }
 
-    public float[] getInnerDim() {
+    /**
+     * Returns the box dimensions
+     * 
+     * @return the box dimensions
+     */
+    public float[] getDim() {
         return dim.clone();
     }
 
+    /**
+     * Returns the limits of the horizontal axes
+     * 
+     * @return the limits of the horizontal axes
+     */
     public float[] getXLim() {
         return xLim.clone();
     }
 
+    /**
+     * Returns the limits of the vertical axes
+     * 
+     * @return the limits of the vertical axes
+     */
     public float[] getYLim() {
         return yLim.clone();
     }
 
+    /**
+     * Returns true if the horizontal axes limits are fixed
+     * 
+     * @return true, if the horizontal axes limits are fixed
+     */
     public boolean getFixedXLim() {
         return fixedXLim;
     }
 
+    /**
+     * Returns true if the vertical axes limits are fixed
+     * 
+     * @return true, if the vertical axes limits are fixed
+     */
     public boolean getFixedYLim() {
         return fixedYLim;
     }
 
+    /**
+     * Returns true if the horizontal axes scale is logarithmic
+     * 
+     * @return true, if the horizontal axes scale is logarithmic
+     */
     public boolean getXLog() {
         return xLog;
     }
 
+    /**
+     * Returns true if the vertical axes scale is logarithmic
+     * 
+     * @return true, if the vertical axes scale is logarithmic
+     */
     public boolean getYLog() {
         return yLog;
     }
 
+    /**
+     * Returns the plot main layer
+     * 
+     * @return the plot main layer
+     */
     public GLayer getMainLayer() {
         return mainLayer;
     }
 
+    /**
+     * Returns a layer with an specific id
+     * 
+     * @param id
+     *            the id of the layer to return
+     * 
+     * @return the layer with the specified id
+     */
     public GLayer getLayer(String id) {
         int index = -1;
 
@@ -1216,42 +1690,74 @@ public class GPlot implements PConstants {
         }
     }
 
+    /**
+     * Returns the plot x axis
+     * 
+     * @return the plot x axis
+     */
     public GAxis getXAxis() {
         return xAxis;
     }
 
+    /**
+     * Returns the plot top axis
+     * 
+     * @return the plot top axis
+     */
     public GAxis getTopAxis() {
         return topAxis;
     }
 
+    /**
+     * Returns the plot y axis
+     * 
+     * @return the plot y axis
+     */
     public GAxis getYAxis() {
         return yAxis;
     }
 
+    /**
+     * Returns the plot right axis
+     * 
+     * @return the plot right axis
+     */
     public GAxis getRightAxis() {
         return rightAxis;
     }
 
+    /**
+     * Returns the plot title
+     * 
+     * @return the plot title
+     */
     public GTitle getTitle() {
         return title;
     }
 
+    /**
+     * Returns a copy of the points of the main layer
+     * 
+     * @return a copy of the points of the main layer
+     */
     public GPointsArray getPoints() {
         return mainLayer.getPoints();
     }
 
+    /**
+     * Returns the points of the main layer
+     * 
+     * @return the points of the main layer
+     */
     public GPointsArray getPointsRef() {
         return mainLayer.getPointsRef();
     }
 
-    public GPointsArray getScreenPoints() {
-        return mainLayer.getScreenPoints();
-    }
-
-    public GPointsArray getScreenPointsRef() {
-        return mainLayer.getScreenPointsRef();
-    }
-
+    /**
+     * Returns the histogram of the main layer
+     * 
+     * @return the histogram of the main layer
+     */
     public GHistogram getHistogram() {
         return mainLayer.getHistogram();
     }

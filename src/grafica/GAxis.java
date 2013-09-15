@@ -815,7 +815,7 @@ public class GAxis implements PConstants {
         }
     }
 
-    public float[] getScreenTicksRef() {
+    public float[] getPlotTicksRef() {
         return screenTicks;
     }
 

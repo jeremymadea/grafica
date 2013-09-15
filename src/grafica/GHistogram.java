@@ -62,10 +62,6 @@ public class GHistogram implements PConstants {
     private int fontColor;
     private int fontSize;
     private PFont font;
-    
-    // Constants
-    public static final int VERTICAL = 0;
-    public static final int HORIZONTAL = 1;
 
     //
     // Constructor
@@ -73,8 +69,8 @@ public class GHistogram implements PConstants {
 
     public GHistogram(PApplet parent, float[] dim, GPointsArray screenPoints) {
         this.parent = parent;
-        
-        type = VERTICAL;
+
+        type = GPlot.VERTICAL;
         this.dim = dim.clone();
         this.screenPoints = new GPointsArray(screenPoints);
         separations = new float[] { 2 };
@@ -117,13 +113,13 @@ public class GHistogram implements PConstants {
 
     private void updateSides() {
         if (nHistElements == 1) {
-            histLeftSides[0] = (type == VERTICAL) ? 0.2f * dim[0] : 0.2f * dim[1];
+            histLeftSides[0] = (type == GPlot.VERTICAL) ? 0.2f * dim[0] : 0.2f * dim[1];
             histRightSides[0] = histLeftSides[0];
         } else if (nHistElements > 1) {
             // Calculate the differences between consecutive points
             float[] differences = new float[nHistElements - 1];
 
-            if (type == VERTICAL) {
+            if (type == GPlot.VERTICAL) {
                 for (int i = 0; i < nHistElements - 1; i++) {
                     if (screenPoints.isValid(i) && screenPoints.isValid(i + 1)) {
                         differences[i] = (screenPoints.getX(i + 1) - screenPoints.getX(i) - histSeparations[i]) / 2;
@@ -157,7 +153,7 @@ public class GHistogram implements PConstants {
             float baseline = 0;
 
             if (screenZeroPoint.isValid()) {
-                baseline = (type == VERTICAL) ? screenZeroPoint.getY() : screenZeroPoint.getX();
+                baseline = (type == GPlot.VERTICAL) ? screenZeroPoint.getY() : screenZeroPoint.getX();
             }
 
             // Draw the rectangles
@@ -170,7 +166,7 @@ public class GHistogram implements PConstants {
                     // Obtain the corners
                     float x1, x2, y1, y2;
 
-                    if (type == VERTICAL) {
+                    if (type == GPlot.VERTICAL) {
                         x1 = screenPoints.getX(i) - histLeftSides[i];
                         x2 = screenPoints.getX(i) + histRightSides[i];
                         y1 = screenPoints.getY(i);
@@ -209,8 +205,8 @@ public class GHistogram implements PConstants {
 
                     if (PApplet.abs(x2 - x1) > 2 * histLineWidths[i] && PApplet.abs(y2 - y1) > 2 * histLineWidths[i]) {
                         parent.rect(x1, y1, x2, y2);
-                    } else if ((type == VERTICAL && x2 != x1 && !(y1 == y2 && (-y1 == 0 || -y1 == dim[1])))
-                            || (type == HORIZONTAL && y2 != y1 && !(x1 == x2 && (x1 == 0 || x1 == dim[0])))) {
+                    } else if ((type == GPlot.VERTICAL && x2 != x1 && !(y1 == y2 && (-y1 == 0 || -y1 == dim[1])))
+                            || (type == GPlot.HORIZONTAL && y2 != y1 && !(x1 == x2 && (x1 == 0 || x1 == dim[0])))) {
                         parent.rect(x1, y1, x2, y2);
                         parent.line(x1, y1, x1, y2);
                         parent.line(x2, y1, x2, y2);
@@ -235,7 +231,7 @@ public class GHistogram implements PConstants {
         parent.fill(fontColor);
         parent.noStroke();
 
-        if (type == VERTICAL) {
+        if (type == GPlot.VERTICAL) {
             if (rotateLabels) {
                 parent.textAlign(RIGHT, CENTER);
 
@@ -366,10 +362,10 @@ public class GHistogram implements PConstants {
     }
 
     public void setType(int newType) {
-        if (newType != type && (newType == VERTICAL || newType == HORIZONTAL)) {
+        if (newType != type && (newType == GPlot.VERTICAL || newType == GPlot.HORIZONTAL)) {
             type = newType;
             updateSides();
-        } 
+        }
     }
 
     public void setVisible(boolean newVisible) {
