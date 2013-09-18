@@ -72,9 +72,6 @@ public class GAxis implements PConstants {
     private int fontSize;
     private PFont font;
 
-    // Constants
-    private final float LOG10 = (float) Math.log(10.0);
-
     /**
      * Constructor
      **/
@@ -123,7 +120,7 @@ public class GAxis implements PConstants {
     // //////////
 
     private int obtainSigDigits(float number) {
-        return PApplet.round(-PApplet.log(0.5f * PApplet.abs(number)) / LOG10);
+        return PApplet.round(-PApplet.log(0.5f * PApplet.abs(number)) / GPlot.LOG10);
     }
 
     private float roundPlus(float number, int sigDigits) {
@@ -140,21 +137,22 @@ public class GAxis implements PConstants {
 
     private float[] obtainLogarithmicTicks() {
         // Get the exponents of the first and last ticks in increasing order
-        int firstExp = (lim[1] > lim[0]) ? PApplet.floor(PApplet.log(lim[0]) / LOG10) : PApplet.floor(PApplet.log(lim[1]) / LOG10);
-        int lastExp = (lim[1] > lim[0]) ? PApplet.ceil(PApplet.log(lim[1]) / LOG10) : PApplet.ceil(PApplet.log(lim[0]) / LOG10);
+        int firstExp = (lim[1] > lim[0]) ? PApplet.floor(PApplet.log(lim[0]) / GPlot.LOG10) : PApplet.floor(PApplet.log(lim[1])
+                / GPlot.LOG10);
+        int lastExp = (lim[1] > lim[0]) ? PApplet.ceil(PApplet.log(lim[1]) / GPlot.LOG10) : PApplet.ceil(PApplet.log(lim[0]) / GPlot.LOG10);
 
         // Calculate the ticks
         float[] result = new float[(lastExp - firstExp) * 9 + 1];
 
         for (int exp = firstExp; exp < lastExp; exp++) {
-            float base = roundPlus(PApplet.exp(exp * LOG10), -exp);
+            float base = roundPlus(PApplet.exp(exp * GPlot.LOG10), -exp);
 
             for (int i = 0; i < 9; i++) {
                 result[(exp - firstExp) * 9 + i] = (i + 1) * base;
             }
         }
 
-        result[result.length - 1] = roundPlus(PApplet.exp(lastExp * LOG10), -lastExp);
+        result[result.length - 1] = roundPlus(PApplet.exp(lastExp * GPlot.LOG10), -lastExp);
 
         return result;
     }
@@ -294,7 +292,7 @@ public class GAxis implements PConstants {
         if (log) {
             for (int i = 0; i < result.length; i++) {
                 if (tks[i] > 0) {
-                    float logValue = PApplet.log(tks[i]) / LOG10;
+                    float logValue = PApplet.log(tks[i]) / GPlot.LOG10;
                     boolean isExactLogValue = PApplet.abs(logValue - PApplet.round(logValue)) < 0.0001;
 
                     if (isExactLogValue) {

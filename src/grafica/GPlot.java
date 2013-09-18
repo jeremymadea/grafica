@@ -37,7 +37,7 @@ import processing.core.PShape;
  * Main class that controls the rest of the graphical elements (layers, axes,
  * title, limits).
  * 
- * @author Javier Graciá Carpio
+ * @author Javier Gracia Carpio
  */
 public class GPlot implements PConstants {
     // The parent Processing applet
@@ -78,6 +78,7 @@ public class GPlot implements PConstants {
     public static final int VERTICAL = 0;
     public static final int HORIZONTAL = 1;
     public static final int BOTH = 2;
+    public static final float LOG10 = (float) Math.log(10);
 
     /**
      * GPlot constructor
@@ -924,11 +925,21 @@ public class GPlot implements PConstants {
      *            the reference value to use to close the contour
      */
     public void drawFilledContours(int contourType, float referenceValue) {
-        mainLayer.drawFilledContours(contourType, referenceValue);
+        mainLayer.drawFilledContour(contourType, referenceValue);
 
         for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).drawFilledContours(contourType, referenceValue);
+            layerList.get(i).drawFilledContour(contourType, referenceValue);
         }
+    }
+
+    /**
+     * Draws the label of a given point
+     * 
+     * @param point
+     *            the point
+     */
+    public void drawLabel(GPoint point) {
+        mainLayer.drawLabel(point);
     }
 
     /**
@@ -947,16 +958,6 @@ public class GPlot implements PConstants {
         for (int i = 0; i < layerList.size(); i++) {
             layerList.get(i).drawLabelAtPlotPos(plotPos[0], plotPos[1]);
         }
-    }
-
-    /**
-     * Draws the point label
-     * 
-     * @param point
-     *            the point
-     */
-    public void drawLabel(GPoint point) {
-        mainLayer.drawLabel(point);
     }
 
     /**
@@ -1534,7 +1535,7 @@ public class GPlot implements PConstants {
      * @param fontColor
      *            the color of the font that will be used in the main layer
      * @param fontSize
-     *            the color of the font that will be used in the main layer
+     *            the size of the font that will be used in the main layer
      */
     public void setFontProperties(String fontName, int fontColor, int fontSize) {
         mainLayer.setFontProperties(fontName, fontColor, fontSize);
@@ -1549,7 +1550,7 @@ public class GPlot implements PConstants {
      * @param fontColor
      *            the color of the font that will be used in all plot elements
      * @param fontSize
-     *            the color of the font that will be used in all plot elements
+     *            the size of the font that will be used in all plot elements
      */
     public void setAllFontProperties(String fontName, int fontColor, int fontSize) {
         xAxis.setAllFontProperties(fontName, fontColor, fontSize);

@@ -35,9 +35,9 @@ import processing.core.PFont;
 import processing.core.PShape;
 
 /**
- * A GLayer usually contains a set of points and a histogram
+ * A GLayer usually contains an array of points and a histogram
  * 
- * @author Javier Graciá Carpio
+ * @author Javier Gracia Carpio
  */
 public class GLayer implements PConstants {
     // The parent Processing applet
@@ -191,12 +191,12 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Transforms the position of a given point to the plot reference system
+     * Calculates the position of a given point in the plot reference system
      * 
      * @param point
      *            the point
      * 
-     * @return a copy of the point with the position transformed to the plot
+     * @return a copy of the point with its position transformed to the plot
      *         reference system
      */
     protected GPoint valueToPlot(GPoint point) {
@@ -224,14 +224,14 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Transforms the positions of a given set of points to the plot reference
+     * Calculates the positions of a given set of points in the plot reference
      * system
      * 
      * @param pts
      *            the set of point
      * 
-     * @return a copy of the set of point with the positions transformed to the
-     *         plot reference system
+     * @return a copy of the set of point with their positions transformed to
+     *         the plot reference system
      */
     protected GPointsArray valueToPlot(GPointsArray pts) {
         GPointsArray plotPts = null;
@@ -338,7 +338,7 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Calculates the values at a given position in the plot reference system
+     * Returns the plot values at a given position in the plot reference system
      * 
      * @param xPlot
      *            x position in the plot reference system
@@ -366,7 +366,7 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Checks is a given (xPlot, yPlot) position in the plot reference system is
+     * Checks if a given (xPlot, yPlot) position in the plot reference system is
      * inside the layer limits
      * 
      * @param xPlot
@@ -398,7 +398,7 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Checks if a given set of points in the plot reference system are inside
+     * Checks if a given set of points in the plot reference system is inside
      * the layer limits
      * 
      * @param plotPts
@@ -468,8 +468,7 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Obtains the box intersections of the line that connects the two given
-     * points
+     * Obtains the box intersections of the line that connects two given points
      * 
      * @param plotPoint1
      *            the first point in the plot reference system
@@ -866,6 +865,9 @@ public class GLayer implements PConstants {
         }
     }
 
+    /**
+     * Draws lines connecting consecutive points in the layer
+     */
     public void drawLines() {
         parent.pushStyle();
         parent.noFill();
@@ -878,7 +880,7 @@ public class GLayer implements PConstants {
                 parent.line(plotPoints.getX(i), plotPoints.getY(i), plotPoints.getX(i + 1), plotPoints.getY(i + 1));
             } else if (plotPoints.isValid(i) && plotPoints.isValid(i + 1)) {
                 // At least one of the points is outside the inner region.
-                // Obtain the valid line axis intersections
+                // Obtain the valid line box intersections
                 float[][] cuts = obtainBoxIntersections(plotPoints.get(i), plotPoints.get(i + 1));
 
                 if (inside[i]) {
@@ -890,115 +892,198 @@ public class GLayer implements PConstants {
                 }
             }
         }
+
         parent.popStyle();
     }
 
-    public void drawLine(GPoint p1, GPoint p2, int col, float lw) {
-        if (p1 != null && p2 != null) {
-            GPoint screenPoint1 = valueToPlot(p1);
-            GPoint screenPoint2 = valueToPlot(p2);
+    /**
+     * Draws a line between two points
+     * 
+     * @param point1
+     *            first point
+     * @param point2
+     *            second point
+     * @param lc
+     *            line color
+     * @param lw
+     *            line width
+     */
+    public void drawLine(GPoint point1, GPoint point2, int lc, float lw) {
+        if (point1 != null && point2 != null) {
+            GPoint plotPoint1 = valueToPlot(point1);
+            GPoint plotPoint2 = valueToPlot(point2);
 
-            if (screenPoint1.isValid() && screenPoint2.isValid()) {
-                boolean inside1 = isInside(screenPoint1);
-                boolean inside2 = isInside(screenPoint2);
+            if (plotPoint1.isValid() && plotPoint2.isValid()) {
+                boolean inside1 = isInside(plotPoint1);
+                boolean inside2 = isInside(plotPoint2);
 
                 parent.pushStyle();
                 parent.noFill();
-                parent.stroke(col);
+                parent.stroke(lc);
                 parent.strokeWeight(lw);
                 parent.strokeCap(SQUARE);
 
                 if (inside1 && inside2) {
-                    parent.line(screenPoint1.getX(), screenPoint1.getY(), screenPoint2.getX(), screenPoint2.getY());
+                    parent.line(plotPoint1.getX(), plotPoint1.getY(), plotPoint2.getX(), plotPoint2.getY());
                 } else {
                     // At least one of the points is outside the inner region.
-                    // Obtain the valid line axis intersections
-                    float[][] cuts = obtainBoxIntersections(screenPoint1, screenPoint2);
+                    // Obtain the valid line box intersections
+                    float[][] cuts = obtainBoxIntersections(plotPoint1, plotPoint2);
 
                     if (inside1) {
-                        parent.line(screenPoint1.getX(), screenPoint1.getY(), cuts[0][0], cuts[0][1]);
+                        parent.line(plotPoint1.getX(), plotPoint1.getY(), cuts[0][0], cuts[0][1]);
                     } else if (inside2) {
-                        parent.line(cuts[0][0], cuts[0][1], screenPoint2.getX(), screenPoint2.getY());
+                        parent.line(cuts[0][0], cuts[0][1], plotPoint2.getX(), plotPoint2.getY());
                     } else if (cuts.length > 1) {
                         parent.line(cuts[0][0], cuts[0][1], cuts[1][0], cuts[1][1]);
                     }
                 }
+
                 parent.popStyle();
             }
         }
     }
 
-    public void drawLine(GPoint p1, GPoint p2) {
-        drawLine(p1, p2, lineColor, lineWidth);
+    /**
+     * Draws a line between two points
+     * 
+     * @param point1
+     *            first point
+     * @param point2
+     */
+    public void drawLine(GPoint point1, GPoint point2) {
+        drawLine(point1, point2, lineColor, lineWidth);
     }
 
-    public void drawHorizontalLine(float val, int col, float lw) {
-        GPoint screenPoint = valueToPlot(new GPoint(1, val));
-
-        if (screenPoint.isValid() && -screenPoint.getY() >= 0 && -screenPoint.getY() <= dim[1]) {
-            parent.pushStyle();
-            parent.noFill();
-            parent.stroke(col);
-            parent.strokeWeight(lw);
-            parent.strokeCap(SQUARE);
-            parent.line(0, screenPoint.getY(), dim[0], screenPoint.getY());
-            parent.popStyle();
-        }
-    }
-
-    public void drawHorizontalLine(float val) {
-        drawHorizontalLine(val, lineColor, lineWidth);
-    }
-
-    public void drawVerticalLine(float val, int col, float lw) {
-        GPoint screenPoint = valueToPlot(new GPoint(val, 1));
-
-        if (screenPoint.isValid() && screenPoint.getX() >= 0 && screenPoint.getX() <= dim[0]) {
-            parent.pushStyle();
-            parent.noFill();
-            parent.stroke(col);
-            parent.strokeWeight(lw);
-            parent.strokeCap(SQUARE);
-            parent.line(screenPoint.getX(), 0, screenPoint.getX(), -dim[1]);
-            parent.popStyle();
-        }
-    }
-
-    public void drawVerticalLine(float val) {
-        drawVerticalLine(val, lineColor, lineWidth);
-    }
-
-    public void drawLine(float slope, float xCut, int col, float lw) {
-        GPoint p1, p2;
+    /**
+     * Draws a line defined by the slope and the cut in the y axis
+     * 
+     * @param slope
+     *            the line slope
+     * @param yCut
+     *            the line y axis cut
+     * @param lc
+     *            line color
+     * @param lw
+     *            line width
+     */
+    public void drawLine(float slope, float yCut, int lc, float lw) {
+        GPoint point1, point2;
 
         if (xLog && yLog) {
-            p1 = new GPoint(xLim[0], PApplet.pow(10, slope * PApplet.log(xLim[0]) / PApplet.log(10.0f) + xCut));
-            p2 = new GPoint(xLim[1], PApplet.pow(10, slope * PApplet.log(xLim[1]) / PApplet.log(10.0f) + xCut));
+            point1 = new GPoint(xLim[0], PApplet.pow(10, slope * PApplet.log(xLim[0]) / GPlot.LOG10 + yCut));
+            point2 = new GPoint(xLim[1], PApplet.pow(10, slope * PApplet.log(xLim[1]) / GPlot.LOG10 + yCut));
         } else if (xLog) {
-            p1 = new GPoint(xLim[0], slope * PApplet.log(xLim[0]) / PApplet.log(10.0f) + xCut);
-            p2 = new GPoint(xLim[1], slope * PApplet.log(xLim[1]) / PApplet.log(10.0f) + xCut);
+            point1 = new GPoint(xLim[0], slope * PApplet.log(xLim[0]) / GPlot.LOG10 + yCut);
+            point2 = new GPoint(xLim[1], slope * PApplet.log(xLim[1]) / GPlot.LOG10 + yCut);
         } else if (yLog) {
-            p1 = new GPoint(xLim[0], PApplet.pow(10, slope * xLim[0] + xCut));
-            p2 = new GPoint(xLim[1], PApplet.pow(10, slope * xLim[1] + xCut));
+            point1 = new GPoint(xLim[0], PApplet.pow(10, slope * xLim[0] + yCut));
+            point2 = new GPoint(xLim[1], PApplet.pow(10, slope * xLim[1] + yCut));
         } else {
-            p1 = new GPoint(xLim[0], slope * xLim[0] + xCut);
-            p2 = new GPoint(xLim[1], slope * xLim[1] + xCut);
+            point1 = new GPoint(xLim[0], slope * xLim[0] + yCut);
+            point2 = new GPoint(xLim[1], slope * xLim[1] + yCut);
         }
 
-        drawLine(p1, p2, col, lw);
+        drawLine(point1, point2, lc, lw);
     }
 
-    public void drawLine(float slope, float xCut) {
-        drawLine(slope, xCut, lineColor, lineWidth);
+    /**
+     * Draws a line defined by the slope and the cut in the y axis
+     * 
+     * @param slope
+     *            the line slope
+     * @param yCut
+     *            the line y axis cut
+     */
+    public void drawLine(float slope, float yCut) {
+        drawLine(slope, yCut, lineColor, lineWidth);
     }
 
-    public void drawFilledContours(int type, float referenceValue) {
+    /**
+     * Draws an horizontal line
+     * 
+     * @param value
+     *            line horizontal value
+     * @param lc
+     *            line color
+     * @param lw
+     *            line width
+     */
+    public void drawHorizontalLine(float value, int lc, float lw) {
+        float[] plotPos = valueToPlot(1, value);
+
+        if (isValidNumber(plotPos[1]) && -plotPos[1] >= 0 && -plotPos[1] <= dim[1]) {
+            parent.pushStyle();
+            parent.noFill();
+            parent.stroke(lc);
+            parent.strokeWeight(lw);
+            parent.strokeCap(SQUARE);
+            parent.line(0, plotPos[1], dim[0], plotPos[1]);
+            parent.popStyle();
+        }
+    }
+
+    /**
+     * Draws an horizontal line
+     * 
+     * @param value
+     *            line horizontal value
+     */
+    public void drawHorizontalLine(float value) {
+        drawHorizontalLine(value, lineColor, lineWidth);
+    }
+
+    /**
+     * Draws a vertical line
+     * 
+     * @param value
+     *            line vertical value
+     * @param lc
+     *            line color
+     * @param lw
+     *            line width
+     */
+    public void drawVerticalLine(float value, int lc, float lw) {
+        float[] plotPos = valueToPlot(value, 1);
+
+        if (isValidNumber(plotPos[0]) && plotPos[0] >= 0 && plotPos[0] <= dim[0]) {
+            parent.pushStyle();
+            parent.noFill();
+            parent.stroke(lc);
+            parent.strokeWeight(lw);
+            parent.strokeCap(SQUARE);
+            parent.line(plotPos[0], 0, plotPos[0], -dim[1]);
+            parent.popStyle();
+        }
+    }
+
+    /**
+     * Draws a vertical line
+     * 
+     * @param value
+     *            line vertical value
+     */
+    public void drawVerticalLine(float value) {
+        drawVerticalLine(value, lineColor, lineWidth);
+    }
+
+    /**
+     * Draws a filled contour connecting consecutive points in the layer and a
+     * reference value
+     * 
+     * @param contourType
+     *            the type of contours to use. It can be GPlot.VERTICAL or
+     *            GPlot.HORIZONTAL
+     * @param referenceValue
+     *            the reference value to use to close the contour
+     */
+    public void drawFilledContour(int contourType, float referenceValue) {
         // Get the points that compose the shape
         GPointsArray shapePoints = null;
 
-        if (type == GPlot.HORIZONTAL) {
+        if (contourType == GPlot.HORIZONTAL) {
             shapePoints = getHorizontalShape(referenceValue);
-        } else {
+        } else if (contourType == GPlot.VERTICAL) {
             shapePoints = getVerticalShape(referenceValue);
         }
 
@@ -1009,18 +1094,30 @@ public class GLayer implements PConstants {
             parent.noStroke();
 
             parent.beginShape();
+
             for (int i = 0; i < shapePoints.getNPoints(); i++) {
                 if (shapePoints.isValid(i)) {
                     parent.vertex(shapePoints.getX(i), shapePoints.getY(i));
                 }
             }
+
             parent.endShape(CLOSE);
+
             parent.popStyle();
         }
     }
 
+    /**
+     * Obtains the shape points of the horizontal contour that connects
+     * consecutive layer points and a reference value
+     * 
+     * @param referenceValue
+     *            the reference value to use to close the contour
+     * 
+     * @return the shape points
+     */
     protected GPointsArray getHorizontalShape(float referenceValue) {
-        // Collect the points and cuts inside the inner region
+        // Collect the points and cuts inside the box
         int nPoints = plotPoints.getNPoints();
         GPointsArray shapePoints = new GPointsArray(2 * nPoints);
         int indexFirstPoint = -1;
@@ -1030,15 +1127,13 @@ public class GLayer implements PConstants {
             if (plotPoints.isValid(i)) {
                 boolean addedPoints = false;
 
-                // Add the point if it's inside the inner region
+                // Add the point if it's inside the box
                 if (inside[i]) {
                     shapePoints.add(plotPoints.getX(i), plotPoints.getY(i), "normal point");
                     addedPoints = true;
-                }
-
-                // If it's outside, add the projection of the point on the
-                // horizontal axes
-                if (!inside[i] && plotPoints.getX(i) >= 0 && plotPoints.getX(i) <= dim[0]) {
+                } else if (plotPoints.getX(i) >= 0 && plotPoints.getX(i) <= dim[0]) {
+                    // If it's outside, add the projection of the point on the
+                    // horizontal axes
                     if (-plotPoints.getY(i) < 0) {
                         shapePoints.add(plotPoints.getX(i), 0, "projection");
                         addedPoints = true;
@@ -1048,7 +1143,7 @@ public class GLayer implements PConstants {
                     }
                 }
 
-                // Add the axis cuts if there is any
+                // Add the box cuts if there is any
                 int nextIndex = i + 1;
 
                 while (nextIndex < nPoints - 1 && !plotPoints.isValid(nextIndex)) {
@@ -1135,19 +1230,21 @@ public class GLayer implements PConstants {
             }
 
             // Add the reference connections
-            if (yLog && referenceValue <= 0)
-                referenceValue = PApplet.min(yLim[0], yLim[1]);
-            GPoint screenReferencePoint = valueToPlot(new GPoint(1, referenceValue));
+            if (yLog && referenceValue <= 0) {
+                referenceValue = Math.min(yLim[0], yLim[1]);
+            }
 
-            if (-screenReferencePoint.getY() < 0) {
+            float[] plotReference = valueToPlot(1, referenceValue);
+
+            if (-plotReference[1] < 0) {
                 shapePoints.add(endPoint.getX(), 0);
                 shapePoints.add(startPoint.getX(), 0);
-            } else if (-screenReferencePoint.getY() > dim[1]) {
+            } else if (-plotReference[1] > dim[1]) {
                 shapePoints.add(endPoint.getX(), -dim[1]);
                 shapePoints.add(startPoint.getX(), -dim[1]);
             } else {
-                shapePoints.add(endPoint.getX(), screenReferencePoint.getY());
-                shapePoints.add(startPoint.getX(), screenReferencePoint.getY());
+                shapePoints.add(endPoint.getX(), plotReference[1]);
+                shapePoints.add(startPoint.getX(), plotReference[1]);
             }
 
             // Add the starting point if it's a new extreme
@@ -1159,8 +1256,17 @@ public class GLayer implements PConstants {
         return shapePoints;
     }
 
+    /**
+     * Obtains the shape points of the vertical contour that connects
+     * consecutive layer points and a reference value
+     * 
+     * @param referenceValue
+     *            the reference value to use to close the contour
+     * 
+     * @return the shape points
+     */
     protected GPointsArray getVerticalShape(float referenceValue) {
-        // Collect the points and cuts inside the inner region
+        // Collect the points and cuts inside the box
         int nPoints = plotPoints.getNPoints();
         GPointsArray shapePoints = new GPointsArray(2 * nPoints);
         int indexFirstPoint = -1;
@@ -1170,15 +1276,13 @@ public class GLayer implements PConstants {
             if (plotPoints.isValid(i)) {
                 boolean addedPoints = false;
 
-                // Add the point if it's inside the inner region
+                // Add the point if it's inside the box
                 if (inside[i]) {
                     shapePoints.add(plotPoints.getX(i), plotPoints.getY(i), "normal point");
                     addedPoints = true;
-                }
-
-                // If it's outside, add the projection of the point on the
-                // vertical axes
-                if (!inside[i] && -plotPoints.getY(i) >= 0 && -plotPoints.getY(i) <= dim[1]) {
+                } else if (-plotPoints.getY(i) >= 0 && -plotPoints.getY(i) <= dim[1]) {
+                    // If it's outside, add the projection of the point on the
+                    // vertical axes
                     if (plotPoints.getX(i) < 0) {
                         shapePoints.add(0, plotPoints.getY(i), "projection");
                         addedPoints = true;
@@ -1188,7 +1292,7 @@ public class GLayer implements PConstants {
                     }
                 }
 
-                // Add the axis cuts if there is any
+                // Add the box cuts if there is any
                 int nextIndex = i + 1;
 
                 while (nextIndex < nPoints - 1 && !plotPoints.isValid(nextIndex)) {
@@ -1275,19 +1379,21 @@ public class GLayer implements PConstants {
             }
 
             // Add the reference connections
-            if (xLog && referenceValue <= 0)
-                referenceValue = PApplet.min(xLim[0], xLim[1]);
-            GPoint screenReferencePoint = valueToPlot(new GPoint(referenceValue, 1));
+            if (xLog && referenceValue <= 0) {
+                referenceValue = Math.min(xLim[0], xLim[1]);
+            }
 
-            if (screenReferencePoint.getX() < 0) {
+            float[] plotReference = valueToPlot(referenceValue, 1);
+
+            if (plotReference[0] < 0) {
                 shapePoints.add(0, endPoint.getY());
                 shapePoints.add(0, startPoint.getY());
-            } else if (screenReferencePoint.getX() > dim[0]) {
+            } else if (plotReference[0] > dim[0]) {
                 shapePoints.add(dim[0], endPoint.getY());
                 shapePoints.add(dim[0], startPoint.getY());
             } else {
-                shapePoints.add(screenReferencePoint.getX(), endPoint.getY());
-                shapePoints.add(screenReferencePoint.getX(), startPoint.getY());
+                shapePoints.add(plotReference[0], endPoint.getY());
+                shapePoints.add(plotReference[0], startPoint.getY());
             }
 
             // Add the starting point if it's a new extreme
@@ -1299,13 +1405,19 @@ public class GLayer implements PConstants {
         return shapePoints;
     }
 
-    public void drawLabel(GPoint p) {
-        if (p != null) {
-            GPoint screenPoint = valueToPlot(p);
+    /**
+     * Draws the label of a given point
+     * 
+     * @param point
+     *            the point
+     */
+    public void drawLabel(GPoint point) {
+        if (point != null) {
+            GPoint plotPoint = valueToPlot(point);
 
-            if (screenPoint.isValid()) {
-                float xLabelPos = screenPoint.getX() + labelSeparation[0];
-                float yLabelPos = screenPoint.getY() - labelSeparation[1];
+            if (plotPoint.isValid()) {
+                float xLabelPos = plotPoint.getX() + labelSeparation[0];
+                float yLabelPos = plotPoint.getY() - labelSeparation[1];
                 float delta = 3;
 
                 parent.pushStyle();
@@ -1316,80 +1428,100 @@ public class GLayer implements PConstants {
 
                 // Draw the background
                 parent.fill(labelBgColor);
-                parent.rect(xLabelPos - delta, yLabelPos - fontSize - delta, parent.textWidth(p.getLabel()) + 2 * delta, fontSize + 2
+                parent.rect(xLabelPos - delta, yLabelPos - fontSize - delta, parent.textWidth(point.getLabel()) + 2 * delta, fontSize + 2
                         * delta);
 
                 // Draw the text
                 parent.fill(fontColor);
-                parent.text(p.getLabel(), xLabelPos, yLabelPos);
+                parent.text(point.getLabel(), xLabelPos, yLabelPos);
                 parent.popStyle();
             }
         }
     }
 
-    public void drawLabelAtPlotPos(float xScreen, float yScreen) {
-        GPoint p = getPointAtPlotPos(xScreen, yScreen);
-        drawLabel(p);
+    /**
+     * Draws the label of the closest point in the layer to a given plot
+     * position
+     * 
+     * @param xPlot
+     *            x position in the plot reference system
+     * @param yPlot
+     *            y position in the plot reference system
+     */
+    public void drawLabelAtPlotPos(float xPlot, float yPlot) {
+        GPoint point = getPointAtPlotPos(xPlot, yPlot);
+        drawLabel(point);
     }
 
+    /**
+     * Draws the histogram
+     */
     public void drawHistogram() {
         if (hist != null) {
             hist.draw(valueToPlot(histBasePoint));
         }
     }
 
-    public void drawPolygon(GPointsArray poly, int col) {
-        if (poly != null && poly.getNPoints() > 2) {
+    /**
+     * Draws a polygon defined by a set of points
+     * 
+     * @param polygonPoints
+     *            the points that define the polygon
+     * @param polygonColor
+     *            the color to use to draw the polygon (contour and background)
+     */
+    public void drawPolygon(GPointsArray polygonPoints, int polygonColor) {
+        if (polygonPoints != null && polygonPoints.getNPoints() > 2) {
             // Remove the polygon invalid points
-            GPointsArray screenPoly = valueToPlot(poly);
-            screenPoly.removeInvalidPoints();
+            GPointsArray plotPolygonPoints = valueToPlot(polygonPoints);
+            plotPolygonPoints.removeInvalidPoints();
 
-            // Create an new polygon with the points inside the plotting area
-            // and the valid axis cuts
-            boolean[] insidePoly = isInside(screenPoly);
-            int nPoints = screenPoly.getNPoints();
-            GPointsArray newPoly = new GPointsArray(2 * nPoints);
+            // Create a temporal array with the points inside the plotting area
+            // and the valid box cuts
+            boolean[] insidePolygon = isInside(plotPolygonPoints);
+            int nPoints = plotPolygonPoints.getNPoints();
+            GPointsArray tmp = new GPointsArray(2 * nPoints);
 
             for (int i = 0; i < nPoints; i++) {
-                if (insidePoly[i]) {
-                    newPoly.add(screenPoly.getX(i), screenPoly.getY(i), "normal point");
+                if (insidePolygon[i]) {
+                    tmp.add(plotPolygonPoints.getX(i), plotPolygonPoints.getY(i), "normal point");
                 }
 
                 // Obtain the cuts with the next point
                 int nextIndex = (i + 1 < nPoints) ? i + 1 : 0;
-                float[][] cuts = obtainBoxIntersections(screenPoly.get(i), screenPoly.get(nextIndex));
+                float[][] cuts = obtainBoxIntersections(plotPolygonPoints.get(i), plotPolygonPoints.get(nextIndex));
 
                 if (cuts.length == 1) {
-                    newPoly.add(cuts[0][0], cuts[0][1], "single cut");
+                    tmp.add(cuts[0][0], cuts[0][1], "single cut");
                 } else if (cuts.length > 1) {
-                    newPoly.add(cuts[0][0], cuts[0][1], "double cut");
-                    newPoly.add(cuts[1][0], cuts[1][1], "double cut");
+                    tmp.add(cuts[0][0], cuts[0][1], "double cut");
+                    tmp.add(cuts[1][0], cuts[1][1], "double cut");
                 }
             }
 
-            // Final modification of the polygon
-            nPoints = newPoly.getNPoints();
+            // Final version of the polygon
+            nPoints = tmp.getNPoints();
             GPointsArray croppedPoly = new GPointsArray(2 * nPoints);
 
             for (int i = 0; i < nPoints; i++) {
                 // Add the point
-                croppedPoly.add(newPoly.get(i));
+                croppedPoly.add(tmp.get(i));
 
                 // Add new points in case we have two consecutive cuts, one of
                 // them is single, and they are in consecutive axes
                 int next = (i + 1 < nPoints) ? i + 1 : 0;
-                String lab = newPoly.getLabel(i);
-                String nextLab = newPoly.getLabel(next);
+                String label = tmp.getLabel(i);
+                String nextLabel = tmp.getLabel(next);
 
-                boolean cond = (lab.equals("single cut") && nextLab.equals("single cut"))
-                        || (lab.equals("single cut") && nextLab.equals("double cut"))
-                        || (lab.equals("double cut") && nextLab.equals("single cut"));
+                boolean cond = (label.equals("single cut") && nextLabel.equals("single cut"))
+                        || (label.equals("single cut") && nextLabel.equals("double cut"))
+                        || (label.equals("double cut") && nextLabel.equals("single cut"));
 
                 if (cond) {
-                    float x1 = newPoly.getX(i);
-                    float y1 = newPoly.getY(i);
-                    float x2 = newPoly.getX(next);
-                    float y2 = newPoly.getY(next);
+                    float x1 = tmp.getX(i);
+                    float y1 = tmp.getY(i);
+                    float x2 = tmp.getX(next);
+                    float y2 = tmp.getY(next);
                     float deltaX = Math.abs(x2 - x1);
                     float deltaY = Math.abs(y2 - y1);
 
@@ -1405,23 +1537,40 @@ public class GLayer implements PConstants {
             // Draw the cropped polygon
             if (croppedPoly.getNPoints() > 2) {
                 parent.pushStyle();
-                parent.fill(col);
+                parent.fill(polygonColor);
                 parent.noStroke();
 
                 parent.beginShape();
+
                 for (int i = 0; i < croppedPoly.getNPoints(); i++) {
                     parent.vertex(croppedPoly.getX(i), croppedPoly.getY(i));
                 }
+
                 parent.endShape(CLOSE);
+
                 parent.popStyle();
             }
         }
     }
 
+    /**
+     * Draws an annotation at a given plot value
+     * 
+     * @param text
+     *            the annotation text
+     * @param x
+     *            x plot value
+     * @param y
+     *            y plot value
+     * @param horAlign
+     *            text horizontal alignment. It can be RIGHT, LEFT or CENTER
+     * @param verAlign
+     *            text vertical alignment. It can be TOP, BOTTOM or CENTER
+     */
     public void drawAnnotation(String text, float x, float y, int horAlign, int verAlign) {
-        float[] screenPos = valueToPlot(x, y);
+        float[] plotPos = valueToPlot(x, y);
 
-        if (isValidNumber(screenPos[0]) && isValidNumber(screenPos[1]) && isInside(screenPos[0], screenPos[1])) {
+        if (isValidNumber(plotPos[0]) && isValidNumber(plotPos[1]) && isInside(plotPos[0], plotPos[1])) {
             if (horAlign != CENTER && horAlign != RIGHT && horAlign != LEFT) {
                 horAlign = LEFT;
             }
@@ -1435,15 +1584,17 @@ public class GLayer implements PConstants {
             parent.textSize(fontSize);
             parent.fill(fontColor);
             parent.textAlign(horAlign, verAlign);
-            parent.text(text, screenPos[0], screenPos[1]);
+            parent.text(text, plotPos[0], plotPos[1]);
             parent.popStyle();
         }
     }
 
-    //
-    // Setters
-    // //////////
-
+    /**
+     * Sets the layer dimensions
+     * 
+     * @param newDim
+     *            the new layer dimensions
+     */
     public void setDim(float[] newDim) {
         if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
             dim = newDim.clone();
@@ -1452,14 +1603,20 @@ public class GLayer implements PConstants {
 
             if (hist != null) {
                 hist.setDim(dim);
-                hist.setScreenPoints(plotPoints);
+                hist.setPlotPoints(plotPoints);
             }
         }
     }
 
+    /**
+     * Sets the horizontal limits
+     * 
+     * @param newXLim
+     *            the new horizontal limits
+     */
     public void setXlim(float[] newXLim) {
         if (newXLim != null && newXLim.length == 2 && newXLim[1] != newXLim[0] && isValidNumber(newXLim[0]) && isValidNumber(newXLim[1])) {
-            // Make sure the new limit makes sense
+            // Make sure the new limits makes sense
             if (xLog && (newXLim[0] <= 0 || newXLim[1] <= 0)) {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
@@ -1468,15 +1625,21 @@ public class GLayer implements PConstants {
                 updateInsideArray();
 
                 if (hist != null) {
-                    hist.setScreenPoints(plotPoints);
+                    hist.setPlotPoints(plotPoints);
                 }
             }
         }
     }
 
+    /**
+     * Sets the vertical limits
+     * 
+     * @param newYLim
+     *            the new vertical limits
+     */
     public void setYlim(float[] newYLim) {
         if (newYLim != null && newYLim.length == 2 && newYLim[1] != newYLim[0] && isValidNumber(newYLim[0]) && isValidNumber(newYLim[1])) {
-            // Make sure the new limit makes sense
+            // Make sure the new limits makes sense
             if (yLog && (newYLim[0] <= 0 || newYLim[1] <= 0)) {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
@@ -1485,14 +1648,22 @@ public class GLayer implements PConstants {
                 updateInsideArray();
 
                 if (hist != null) {
-                    hist.setScreenPoints(plotPoints);
+                    hist.setPlotPoints(plotPoints);
                 }
             }
         }
     }
 
+    /**
+     * Sets the horizontal and vertical limits
+     * 
+     * @param newXLim
+     *            the new horizontal limits
+     * @param newYLim
+     *            the new vertical limits
+     */
     public void setLimits(float[] newXLim, float[] newYLim) {
-        if (newXLim != null && newXLim.length == 2 && newXLim[1] != newXLim[0] && newYLim != null && newYLim.length == 2
+        if (newXLim != null && newYLim != null && newXLim.length == 2 && newYLim.length == 2 && newXLim[1] != newXLim[0]
                 && newYLim[1] != newYLim[0] && isValidNumber(newXLim[0]) && isValidNumber(newXLim[1]) && isValidNumber(newYLim[0])
                 && isValidNumber(newYLim[1])) {
             // Make sure the new limits make sense
@@ -1512,13 +1683,26 @@ public class GLayer implements PConstants {
             updateInsideArray();
 
             if (hist != null) {
-                hist.setScreenPoints(plotPoints);
+                hist.setPlotPoints(plotPoints);
             }
         }
     }
 
+    /**
+     * Sets the horizontal and vertical limits and the horizontal and vertical
+     * scales
+     * 
+     * @param newXLim
+     *            the new horizontal limits
+     * @param newYLim
+     *            the new vertical limits
+     * @param newXLog
+     *            the new horizontal scale
+     * @param newYLog
+     *            the new vertical scale
+     */
     public void setLimAndLog(float[] newXLim, float[] newYLim, boolean newXLog, boolean newYLog) {
-        if (newXLim != null && newXLim.length == 2 && newXLim[1] != newXLim[0] && newYLim != null && newYLim.length == 2
+        if (newXLim != null && newYLim != null && newXLim.length == 2 && newYLim.length == 2 && newXLim[1] != newXLim[0]
                 && newYLim[1] != newYLim[0] && isValidNumber(newXLim[0]) && isValidNumber(newXLim[1]) && isValidNumber(newYLim[0])
                 && isValidNumber(newYLim[1])) {
             // Make sure the new limits make sense
@@ -1540,11 +1724,17 @@ public class GLayer implements PConstants {
             updateInsideArray();
 
             if (hist != null) {
-                hist.setScreenPoints(plotPoints);
+                hist.setPlotPoints(plotPoints);
             }
         }
     }
 
+    /**
+     * Sets the horizontal scale
+     * 
+     * @param newXLog
+     *            the new horizontal scale
+     */
     public void setXLog(boolean newXLog) {
         if (newXLog != xLog) {
             if (newXLog && (xLim[0] <= 0 || xLim[1] <= 0)) {
@@ -1558,11 +1748,17 @@ public class GLayer implements PConstants {
             updateInsideArray();
 
             if (hist != null) {
-                hist.setScreenPoints(plotPoints);
+                hist.setPlotPoints(plotPoints);
             }
         }
     }
 
+    /**
+     * Sets the vertical scale
+     * 
+     * @param newYLog
+     *            the new vertical scale
+     */
     public void setYLog(boolean newYLog) {
         if (newYLog != yLog) {
             if (newYLog && (yLim[0] <= 0 || yLim[1] <= 0)) {
@@ -1576,11 +1772,17 @@ public class GLayer implements PConstants {
             updateInsideArray();
 
             if (hist != null) {
-                hist.setScreenPoints(plotPoints);
+                hist.setPlotPoints(plotPoints);
             }
         }
     }
 
+    /**
+     * Sets the layer points
+     * 
+     * @param newPoints
+     *            the new points
+     */
     public void setPoints(GPointsArray newPoints) {
         if (newPoints != null) {
             points = new GPointsArray(newPoints);
@@ -1588,82 +1790,168 @@ public class GLayer implements PConstants {
             inside = isInside(plotPoints);
 
             if (hist != null) {
-                hist.setScreenPoints(plotPoints);
+                hist.setPlotPoints(plotPoints);
             }
         }
     }
 
+    /**
+     * Sets which points are inside the box
+     * 
+     * @param newInside
+     *            a boolean array with the information whether a point is inside
+     *            or not
+     */
     public void setInside(boolean[] newInside) {
         if (newInside != null && newInside.length == inside.length) {
             inside = newInside.clone();
         }
     }
 
+    /**
+     * Sets the points colors
+     * 
+     * @param newPointColors
+     *            the new point colors
+     */
     public void setPointColors(int[] newPointColors) {
         if (newPointColors != null && newPointColors.length > 0) {
             pointColors = newPointColors.clone();
         }
     }
 
+    /**
+     * Sets the points sizes
+     * 
+     * @param newPointSizes
+     *            the new point sizes
+     */
     public void setPointSizes(float[] newPointSizes) {
         if (newPointSizes != null && newPointSizes.length > 0) {
             pointSizes = newPointSizes.clone();
         }
     }
 
+    /**
+     * Sets the line color
+     * 
+     * @param newLineColor
+     *            the new line color
+     */
     public void setLineColor(int newLineColor) {
         lineColor = newLineColor;
     }
 
+    /**
+     * Sets the line width
+     * 
+     * @param newLineWidth
+     *            the new line width
+     */
     public void setLineWidth(float newLineWidth) {
         if (newLineWidth > 0) {
             lineWidth = newLineWidth;
         }
     }
 
-    public void setHistBasePoint(GPoint newHistZeroPoint) {
-        if (newHistZeroPoint != null) {
-            histBasePoint = new GPoint(newHistZeroPoint);
+    /**
+     * Sets the histogram base point
+     * 
+     * @param newHistBasePoint
+     *            the new histogram base point
+     */
+    public void setHistBasePoint(GPoint newHistBasePoint) {
+        if (newHistBasePoint != null) {
+            histBasePoint = new GPoint(newHistBasePoint);
         }
     }
 
+    /**
+     * Sets the histogram type
+     * 
+     * @param histType
+     *            the new histogram type. It can be GPlot.HORIZONTAL or
+     *            GPlot.VERTICAL
+     */
     public void setHistType(int histType) {
         if (hist != null) {
             hist.setType(histType);
         }
     }
 
+    /**
+     * Sets if the histogram is visible or not
+     * 
+     * @param visible
+     *            if true, the histogram is visible
+     */
     public void setHistVisible(boolean visible) {
         if (hist != null) {
             hist.setVisible(visible);
         }
     }
 
+    /**
+     * Sets if the histogram labels will be drawn or not
+     * 
+     * @param drawHistLabels
+     *            if true, the histogram labels will be drawn
+     */
     public void setDrawHistLabels(boolean drawHistLabels) {
         if (hist != null) {
             hist.setDrawLabels(drawHistLabels);
         }
     }
 
+    /**
+     * Sets the label background color
+     * 
+     * @param newLabelBgColor
+     *            the new label background color
+     */
     public void setLabelBgColor(int newLabelBgColor) {
         labelBgColor = newLabelBgColor;
     }
 
+    /**
+     * Sets the label separation
+     * 
+     * @param newLabelSeparation
+     *            the new label separation
+     */
     public void setLabelSeparation(float[] newLabelSeparation) {
         if (newLabelSeparation != null && newLabelSeparation.length == 2) {
             labelSeparation = newLabelSeparation.clone();
         }
     }
 
+    /**
+     * Sets the font name
+     * 
+     * @param newFontName
+     *            the name of the new font
+     */
     public void setFontName(String newFontName) {
         fontName = newFontName;
         font = parent.createFont(fontName, fontSize);
     }
 
+    /**
+     * Sets the font color
+     * 
+     * @param newFontColor
+     *            the new font color
+     */
     public void setFontColor(int newFontColor) {
         fontColor = newFontColor;
     }
 
+    /**
+     * Sets the font size
+     * 
+     * @param newFontSize
+     *            the new font size
+     */
     public void setFontSize(int newFontSize) {
         if (newFontSize > 0) {
             fontSize = newFontSize;
@@ -1671,6 +1959,16 @@ public class GLayer implements PConstants {
         }
     }
 
+    /**
+     * Sets the font properties
+     * 
+     * @param newFontName
+     *            the new of the new font
+     * @param newFontColor
+     *            the new font color
+     * @param newFontSize
+     *            the new font size
+     */
     public void setFontProperties(String newFontName, int newFontColor, int newFontSize) {
         if (newFontSize > 0) {
             fontName = newFontName;
@@ -1680,6 +1978,16 @@ public class GLayer implements PConstants {
         }
     }
 
+    /**
+     * Sets the font properties in the layer and the histogram
+     * 
+     * @param fontName
+     *            the new font name
+     * @param fontColor
+     *            the new font color
+     * @param fontSize
+     *            the new font size
+     */
     public void setAllFontProperties(String newFontName, int newFontColor, int newFontSize) {
         setFontProperties(newFontName, newFontColor, newFontSize);
 
@@ -1688,50 +1996,83 @@ public class GLayer implements PConstants {
         }
     }
 
-    //
-    // Getters
-    // //////////
-
+    /**
+     * Returns the layer id
+     * 
+     * @return the layer id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Returns the layer dimensions
+     * 
+     * @return the layer dimensions
+     */
     public float[] getDim() {
         return dim.clone();
     }
 
+    /**
+     * Returns the layer horizontal limits
+     * 
+     * @return the layer horizontal limits
+     */
     public float[] getXLim() {
         return xLim.clone();
     }
 
+    /**
+     * Returns the layer vertical limits
+     * 
+     * @return the layer vertical limits
+     */
     public float[] getYLim() {
         return yLim.clone();
     }
 
+    /**
+     * Returns the layer horizontal scale
+     * 
+     * @return the layer horizontal scale
+     */
     public boolean getXLog() {
         return xLog;
     }
 
+    /**
+     * Returns the layer vertical scale
+     * 
+     * @return the layer vertical scale
+     */
     public boolean getYLog() {
         return yLog;
     }
 
+    /**
+     * Returns a copy of the layer points
+     * 
+     * @return a copy of the layer points
+     */
     public GPointsArray getPoints() {
         return new GPointsArray(points);
     }
 
+    /**
+     * Returns the layer points
+     * 
+     * @return the layer points
+     */
     public GPointsArray getPointsRef() {
         return points;
     }
 
-    public GPointsArray getScreenPoints() {
-        return new GPointsArray(plotPoints);
-    }
-
-    public GPointsArray getScreenPointsRef() {
-        return plotPoints;
-    }
-
+    /**
+     * Returns the layer histogram
+     * 
+     * @return the layer histogram
+     */
     public GHistogram getHistogram() {
         return hist;
     }

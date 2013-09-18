@@ -290,7 +290,7 @@ public class GHistogram implements PConstants {
         }
     }
 
-    public void setScreenPoints(GPointsArray newScreenPoints) {
+    public void setPlotPoints(GPointsArray newScreenPoints) {
         if (newScreenPoints != null) {
             screenPoints = new GPointsArray(newScreenPoints);
 
