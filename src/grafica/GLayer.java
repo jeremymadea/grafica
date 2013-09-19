@@ -1981,11 +1981,11 @@ public class GLayer implements PConstants {
     /**
      * Sets the font properties in the layer and the histogram
      * 
-     * @param fontName
+     * @param newFontName
      *            the new font name
-     * @param fontColor
+     * @param newFontColor
      *            the new font color
-     * @param fontSize
+     * @param newFontSize
      *            the new font size
      */
     public void setAllFontProperties(String newFontName, int newFontColor, int newFontSize) {
