@@ -34,7 +34,7 @@ import processing.core.PConstants;
 import processing.core.PShape;
 
 /**
- * Main class that controls the rest of the graphical elements (layers, axes,
+ * Plot class. It controls the rest of the graphical elements (layers, axes,
  * title, limits).
  * 
  * @author Javier Gracia Carpio
@@ -1146,7 +1146,7 @@ public class GPlot implements PConstants {
      * @param newXLim
      *            the new horizontal axes limits
      */
-    public void setXlim(float[] newXLim) {
+    public void setXLim(float[] newXLim) {
         if (newXLim != null && newXLim.length == 2 && newXLim[1] != newXLim[0]) {
             // Make sure the new limits makes sense
             if (xLog && (newXLim[0] <= 0 || newXLim[1] <= 0)) {
@@ -1183,7 +1183,7 @@ public class GPlot implements PConstants {
      * @param newYLim
      *            the new vertical axes limits
      */
-    public void setYlim(float[] newYLim) {
+    public void setYLim(float[] newYLim) {
         if (newYLim != null && newYLim.length == 2 && newYLim[1] != newYLim[0]) {
             // Make sure the new limits makes sense
             if (yLog && (newYLim[0] <= 0 || newYLim[1] <= 0)) {

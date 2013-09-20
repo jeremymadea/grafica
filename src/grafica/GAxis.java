@@ -35,7 +35,7 @@ import processing.core.PConstants;
 import processing.core.PFont;
 
 /**
- * A GAxis contains the information of one of the GPlot axes
+ * Axis class.
  * 
  * @author Javier Gracia Carpio
  */
@@ -86,7 +86,7 @@ public class GAxis implements PConstants {
      * @param type
      *            the axis type. It can be X, Y, TOP or RIGHT
      * @param dim
-     *            the dimensions in pixels
+     *            the plot box dimensions in pixels
      * @param lim
      *            the limits
      * @param log
@@ -686,10 +686,10 @@ public class GAxis implements PConstants {
     }
 
     /**
-     * Sets the axis dimensions
+     * Sets the plot box dimensions information
      * 
      * @param newDim
-     *            the new axis dimensions
+     *            the new plot box dimensions information
      */
     public void setDim(float[] newDim) {
         if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
@@ -991,10 +991,10 @@ public class GAxis implements PConstants {
     }
 
     /**
-     * Sets the font properties
+     * Sets all the font properties at once
      * 
      * @param newFontName
-     *            the new of the new font
+     *            the name of the new font
      * @param newFontColor
      *            the new font color
      * @param newFontSize

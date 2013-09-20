@@ -31,69 +31,83 @@ import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PFont;
 
+/**
+ * Axis label class.
+ * 
+ * @author Javier Gracia Carpio
+ */
 public class GAxisLabel implements PConstants {
     // The parent Processing applet
-    private final PApplet parent;
+    protected final PApplet parent;
 
     // General properties
-    private final int type;
-    private float[] dim;
-    private float relativePos;
-    private float screenPos;
-    private float offset;
-    private boolean rotate;
+    protected final int type;
+    protected float[] dim;
+    protected float relativePos;
+    protected float plotPos;
+    protected float offset;
+    protected boolean rotate;
 
     // Text properties
-    private String text;
-    private int textAlignment;
-    private String fontName;
-    private int fontColor;
-    private int fontSize;
-    private PFont font;
+    protected String text;
+    protected int textAlignment;
+    protected String fontName;
+    protected int fontColor;
+    protected int fontSize;
+    protected PFont font;
 
-    //
-    // Constructor
-    // /////////////
-
+    /**
+     * Constructor
+     * 
+     * @param parent
+     *            the parent Processing applet
+     * @param type
+     *            the axis label type. It can be X, Y, TOP or RIGHT
+     * @param dim
+     *            the plot box dimensions in pixels
+     */
     public GAxisLabel(PApplet parent, int type, float[] dim) {
         this.parent = parent;
-        this.type = (type == GAxis.X || type == GAxis.Y || type == GAxis.TOP || type == GAxis.RIGHT) ? type : GAxis.X;
+
+        this.type = (type == X || type == Y || type == TOP || type == RIGHT) ? type : X;
         this.dim = dim.clone();
         relativePos = 0.5f;
-        screenPos = (this.type == GAxis.X || this.type == GAxis.TOP) ? relativePos * dim[0] : -relativePos * dim[1];
+        plotPos = (this.type == X || this.type == TOP) ? relativePos * this.dim[0] : -relativePos * this.dim[1];
         offset = 35;
-        rotate = (this.type == GAxis.X || this.type == GAxis.TOP) ? false : true;
+        rotate = (this.type == X || this.type == TOP) ? false : true;
 
         text = "";
         textAlignment = CENTER;
         fontName = "SansSerif.plain";
-        fontColor = parent.color(0);
+        fontColor = this.parent.color(0);
         fontSize = 13;
-        font = parent.createFont(fontName, fontSize);
+        font = this.parent.createFont(fontName, fontSize);
     }
 
-    //
-    // Methods
-    // //////////
-
+    /**
+     * Draws the axis label
+     */
     public void draw() {
         switch (type) {
-        case GAxis.X:
+        case X:
             drawAsXLabel();
             break;
-        case GAxis.Y:
+        case Y:
             drawAsYLabel();
             break;
-        case GAxis.TOP:
+        case TOP:
             drawAsTopLabel();
             break;
-        case GAxis.RIGHT:
+        case RIGHT:
             drawAsRightLabel();
             break;
         }
     }
 
-    private void drawAsXLabel() {
+    /**
+     * Draws the axis label as an X axis label
+     */
+    protected void drawAsXLabel() {
         parent.pushStyle();
         parent.textFont(font);
         parent.textSize(fontSize);
@@ -104,18 +118,21 @@ public class GAxisLabel implements PConstants {
             parent.textAlign(RIGHT, CENTER);
 
             parent.pushMatrix();
-            parent.translate(screenPos, offset);
+            parent.translate(plotPos, offset);
             parent.rotate(-HALF_PI);
             parent.text(text, 0, 0);
             parent.popMatrix();
         } else {
             parent.textAlign(textAlignment, TOP);
-            parent.text(text, screenPos, offset);
+            parent.text(text, plotPos, offset);
         }
         parent.popStyle();
     }
 
-    private void drawAsYLabel() {
+    /**
+     * Draws the axis label as a Y axis label
+     */
+    protected void drawAsYLabel() {
         parent.pushStyle();
         parent.textFont(font);
         parent.textSize(fontSize);
@@ -126,18 +143,21 @@ public class GAxisLabel implements PConstants {
             parent.textAlign(textAlignment, BOTTOM);
 
             parent.pushMatrix();
-            parent.translate(-offset, screenPos);
+            parent.translate(-offset, plotPos);
             parent.rotate(-HALF_PI);
             parent.text(text, 0, 0);
             parent.popMatrix();
         } else {
             parent.textAlign(RIGHT, CENTER);
-            parent.text(text, -offset, screenPos);
+            parent.text(text, -offset, plotPos);
         }
         parent.popStyle();
     }
 
-    private void drawAsTopLabel() {
+    /**
+     * Draws the axis label as a TOP axis label
+     */
+    protected void drawAsTopLabel() {
         parent.pushStyle();
         parent.textFont(font);
         parent.textSize(fontSize);
@@ -148,18 +168,21 @@ public class GAxisLabel implements PConstants {
             parent.textAlign(LEFT, CENTER);
 
             parent.pushMatrix();
-            parent.translate(screenPos, -offset - dim[1]);
+            parent.translate(plotPos, -offset - dim[1]);
             parent.rotate(-HALF_PI);
             parent.text(text, 0, 0);
             parent.popMatrix();
         } else {
             parent.textAlign(textAlignment, BOTTOM);
-            parent.text(text, screenPos, -offset - dim[1]);
+            parent.text(text, plotPos, -offset - dim[1]);
         }
         parent.popStyle();
     }
 
-    private void drawAsRightLabel() {
+    /**
+     * Draws the axis label as a RIGHT axis label
+     */
+    protected void drawAsRightLabel() {
         parent.pushStyle();
         parent.textFont(font);
         parent.textSize(fontSize);
@@ -170,60 +193,110 @@ public class GAxisLabel implements PConstants {
             parent.textAlign(textAlignment, TOP);
 
             parent.pushMatrix();
-            parent.translate(offset + dim[0], screenPos);
+            parent.translate(offset + dim[0], plotPos);
             parent.rotate(-HALF_PI);
             parent.text(text, 0, 0);
             parent.popMatrix();
         } else {
             parent.textAlign(LEFT, CENTER);
-            parent.text(text, offset + dim[0], screenPos);
+            parent.text(text, offset + dim[0], plotPos);
         }
         parent.popStyle();
     }
 
-    //
-    // Setters
-    // //////////
-
+    /**
+     * Sets the plot box dimensions information
+     * 
+     * @param newDim
+     *            the new plot box dimensions information
+     */
     public void setDim(float[] newDim) {
         if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
             dim = newDim.clone();
-            screenPos = (type == GAxis.X || type == GAxis.TOP) ? relativePos * dim[0] : -relativePos * dim[1];
+            plotPos = (type == X || type == TOP) ? relativePos * dim[0] : -relativePos * dim[1];
         }
     }
 
+    /**
+     * Sets the label relative position in the axis
+     * 
+     * @param newRelativePos
+     *            the new relative position in the axis
+     */
     public void setRelativePos(float newRelativePos) {
         relativePos = newRelativePos;
-        screenPos = (type == GAxis.X || type == GAxis.TOP) ? relativePos * dim[0] : -relativePos * dim[1];
+        plotPos = (type == X || type == TOP) ? relativePos * dim[0] : -relativePos * dim[1];
     }
 
+    /**
+     * Sets the axis label offset
+     * 
+     * @param newOffset
+     *            the new axis label offset
+     */
     public void setOffset(float newOffset) {
         offset = newOffset;
     }
 
+    /**
+     * Sets if the axis label should be rotated or not
+     * 
+     * @param newRotate
+     *            true if the axis label should be rotated
+     */
     public void setRotate(boolean newRotate) {
         rotate = newRotate;
     }
 
+    /**
+     * Sets the axis label text
+     * 
+     * @param newText
+     *            the new axis label text
+     */
     public void setText(String newText) {
         text = newText;
     }
 
+    /**
+     * Sets the axis label type of text alignment
+     * 
+     * @param newTextAlignment
+     *            the new type of text alignment
+     */
     public void setTextAlignment(int newTextAlignment) {
         if (newTextAlignment == CENTER || newTextAlignment == LEFT || newTextAlignment == RIGHT) {
             textAlignment = newTextAlignment;
         }
     }
 
+    /**
+     * Sets the font name
+     * 
+     * @param newFontName
+     *            the name of the new font
+     */
     public void setFontName(String newFontName) {
         fontName = newFontName;
         font = parent.createFont(fontName, fontSize);
     }
 
+    /**
+     * Sets the font color
+     * 
+     * @param newFontColor
+     *            the new font color
+     */
     public void setFontColor(int newFontColor) {
         fontColor = newFontColor;
     }
 
+    /**
+     * Sets the font size
+     * 
+     * @param newFontSize
+     *            the new font size
+     */
     public void setFontSize(int newFontSize) {
         if (newFontSize > 0) {
             fontSize = newFontSize;
@@ -231,6 +304,16 @@ public class GAxisLabel implements PConstants {
         }
     }
 
+    /**
+     * Sets all the font properties at once
+     * 
+     * @param newFontName
+     *            the name of the new font
+     * @param newFontColor
+     *            the new font color
+     * @param newFontSize
+     *            the new font size
+     */
     public void setFontProperties(String newFontName, int newFontColor, int newFontSize) {
         if (newFontSize > 0) {
             fontName = newFontName;

@@ -31,47 +31,56 @@ import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PFont;
 
+/**
+ * Title class.
+ * 
+ * @author Javier Gracia Carpio
+ */
 public class GTitle implements PConstants {
     // The parent Processing applet
-    private final PApplet parent;
+    protected final PApplet parent;
 
     // General properties
-    private float[] dim;
-    private float relativePos;
-    private float screenPos;
-    private float offset;
+    protected float[] dim;
+    protected float relativePos;
+    protected float plotPos;
+    protected float offset;
 
     // Text properties
-    private String text;
-    private int textAlignment;
-    private String fontName;
-    private int fontColor;
-    private int fontSize;
-    private PFont font;
+    protected String text;
+    protected int textAlignment;
+    protected String fontName;
+    protected int fontColor;
+    protected int fontSize;
+    protected PFont font;
 
-    //
-    // Constructor
-    // /////////////
-
+    /**
+     * Constructor
+     * 
+     * @param parent
+     *            the parent Processing applet
+     * @param dim
+     *            the plot box dimensions in pixels
+     */
     public GTitle(PApplet parent, float[] dim) {
         this.parent = parent;
+
         this.dim = dim.clone();
         relativePos = 0.5f;
-        screenPos = relativePos * dim[0];
+        plotPos = relativePos * this.dim[0];
         offset = 10;
 
         text = "";
         textAlignment = CENTER;
         fontName = "SansSerif.bold";
-        fontColor = parent.color(100);
+        fontColor = this.parent.color(100);
         fontSize = 13;
-        font = parent.createFont(fontName, fontSize);
+        font = this.parent.createFont(fontName, fontSize);
     }
 
-    //
-    // Methods
-    // //////////
-
+    /**
+     * Draws the plot title
+     */
     public void draw() {
         parent.pushStyle();
         parent.textFont(font);
@@ -79,49 +88,93 @@ public class GTitle implements PConstants {
         parent.fill(fontColor);
         parent.noStroke();
         parent.textAlign(textAlignment, BOTTOM);
-        parent.text(text, screenPos, -offset - dim[1]);
+        parent.text(text, plotPos, -offset - dim[1]);
         parent.popStyle();
     }
 
-    //
-    // Setters
-    // //////////
-
+    /**
+     * Sets the plot box dimensions information
+     * 
+     * @param newDim
+     *            the new plot box dimensions information
+     */
     public void setDim(float[] newDim) {
         if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
             dim = newDim.clone();
-            screenPos = relativePos * dim[0];
+            plotPos = relativePos * dim[0];
         }
     }
 
+    /**
+     * Sets the title relative position in the plot
+     * 
+     * @param newRelativePos
+     *            the new relative position in the plot
+     */
     public void setRelativePos(float newRelativePos) {
         relativePos = newRelativePos;
-        screenPos = relativePos * dim[0];
+        plotPos = relativePos * dim[0];
     }
 
+    /**
+     * Sets the title offset
+     * 
+     * @param newOffset
+     *            the new title offset
+     */
     public void setOffset(float newOffset) {
         offset = newOffset;
     }
 
+    /**
+     * Sets the title text
+     * 
+     * @param newText
+     *            the new title text
+     */
     public void setText(String newText) {
         text = newText;
     }
 
+    /**
+     * Sets the title type of text alignment
+     * 
+     * @param newTextAlignment
+     *            the new type of text alignment
+     */
     public void setTextAlignment(int newTextAlignment) {
         if (newTextAlignment == CENTER || newTextAlignment == LEFT || newTextAlignment == RIGHT) {
             textAlignment = newTextAlignment;
         }
     }
 
+    /**
+     * Sets the font name
+     * 
+     * @param newFontName
+     *            the name of the new font
+     */
     public void setFontName(String newFontName) {
         fontName = newFontName;
         font = parent.createFont(fontName, fontSize);
     }
 
+    /**
+     * Sets the font color
+     * 
+     * @param newFontColor
+     *            the new font color
+     */
     public void setFontColor(int newFontColor) {
         fontColor = newFontColor;
     }
 
+    /**
+     * Sets the font size
+     * 
+     * @param newFontSize
+     *            the new font size
+     */
     public void setFontSize(int newFontSize) {
         if (newFontSize > 0) {
             fontSize = newFontSize;
@@ -129,6 +182,16 @@ public class GTitle implements PConstants {
         }
     }
 
+    /**
+     * Sets all the font properties at once
+     * 
+     * @param newFontName
+     *            the name of the new font
+     * @param newFontColor
+     *            the new font color
+     * @param newFontSize
+     *            the new font size
+     */
     public void setFontProperties(String newFontName, int newFontColor, int newFontSize) {
         if (newFontSize > 0) {
             fontName = newFontName;

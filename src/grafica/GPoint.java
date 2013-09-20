@@ -27,16 +27,27 @@
 
 package grafica;
 
+/**
+ * Point class. A GPoint is composed of two coordinates (x, y) and a text label
+ * 
+ * @author Javier Gracia Carpio
+ */
 public class GPoint {
-    private float x;
-    private float y;
-    private String label;
-    private boolean valid;
+    protected float x;
+    protected float y;
+    protected String label;
+    protected boolean valid;
 
-    //
-    // Constructor
-    // /////////////
-
+    /**
+     * Constructor
+     * 
+     * @param x
+     *            the x coordinate
+     * @param y
+     *            the y coordinate
+     * @param label
+     *            the text label
+     */
     public GPoint(float x, float y, String label) {
         this.x = x;
         this.y = y;
@@ -44,66 +55,127 @@ public class GPoint {
         valid = isValidNumber(x) && isValidNumber(y);
     }
 
+    /**
+     * Constructor
+     * 
+     * @param x
+     *            the x coordinate
+     * @param y
+     *            the y coordinate
+     */
     public GPoint(float x, float y) {
         this(x, y, "");
     }
 
-    public GPoint(GPoint p) {
-        this(p.getX(), p.getY(), p.getLabel());
+    /**
+     * Constructor
+     * 
+     * @param point
+     *            a GPoint
+     */
+    public GPoint(GPoint point) {
+        this(point.getX(), point.getY(), point.getLabel());
     }
 
-    //
-    // Methods
-    // ///////////
-
-    private boolean isValidNumber(float number) {
+    /**
+     * Checks if the provided number is valid (i.e., is not NaN or Infinite)
+     * 
+     * @param number
+     *            the number to check
+     * 
+     * @return true if its valid
+     */
+    protected boolean isValidNumber(float number) {
         return !Float.isNaN(number) && !Float.isInfinite(number);
     }
 
-    //
-    // Setters
-    // //////////
-
+    /**
+     * Sets the point x coordinate
+     * 
+     * @param newX
+     *            the new x coordinate
+     */
     public void setX(float newX) {
         x = newX;
         valid = isValidNumber(x) && isValidNumber(y);
     }
 
+    /**
+     * Sets the point y coordinate
+     * 
+     * @param newY
+     *            the new y coordinate
+     */
     public void setY(float newY) {
         y = newY;
         valid = isValidNumber(x) && isValidNumber(y);
     }
 
+    /**
+     * Sets the point x and y coordinates
+     * 
+     * @param newX
+     *            the new x coordinate
+     * @param newY
+     *            the new y coordinate
+     */
     public void setXY(float newX, float newY) {
         x = newX;
         y = newY;
         valid = isValidNumber(x) && isValidNumber(y);
     }
 
+    /**
+     * Sets the point text label
+     * 
+     * @param newLabel
+     *            the new point text label
+     */
     public void setLabel(String newLabel) {
         label = newLabel;
     }
 
-    //
-    // Getters
-    // //////////
-
+    /**
+     * Returns the point x coordinate
+     * 
+     * @return the point x coordinate
+     */
     public float getX() {
         return x;
     }
 
+    /**
+     * Returns the point y coordinate
+     * 
+     * @return the point y coordinate
+     */
     public float getY() {
         return y;
     }
 
+    /**
+     * Returns the point text label
+     * 
+     * @return the point text label
+     */
     public String getLabel() {
         return label;
     }
 
+    /**
+     * Returns if the point coordinates are valid or not
+     * 
+     * @return true if the point coordinates are valid
+     */
     public boolean getValid() {
         return valid;
     }
 
+    /**
+     * Returns if the point coordinates are valid or not
+     * 
+     * @return true if the point coordinates are valid
+     */
     public boolean isValid() {
         return valid;
     }

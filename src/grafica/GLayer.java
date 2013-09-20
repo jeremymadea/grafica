@@ -35,7 +35,7 @@ import processing.core.PFont;
 import processing.core.PShape;
 
 /**
- * A GLayer usually contains an array of points and a histogram
+ * Layer class. A GLayer usually contains an array of points and a histogram
  * 
  * @author Javier Gracia Carpio
  */
@@ -82,7 +82,7 @@ public class GLayer implements PConstants {
      * @param id
      *            the layer id
      * @param dim
-     *            the dimensions in pixels
+     *            the plot box dimensions in pixels
      * @param xLim
      *            the horizontal limits
      * @param yLim
@@ -199,7 +199,7 @@ public class GLayer implements PConstants {
      * @return a copy of the point with its position transformed to the plot
      *         reference system
      */
-    protected GPoint valueToPlot(GPoint point) {
+    public GPoint valueToPlot(GPoint point) {
         GPoint plotPoint = null;
 
         if (point != null) {
@@ -233,7 +233,7 @@ public class GLayer implements PConstants {
      * @return a copy of the set of point with their positions transformed to
      *         the plot reference system
      */
-    protected GPointsArray valueToPlot(GPointsArray pts) {
+    public GPointsArray valueToPlot(GPointsArray pts) {
         GPointsArray plotPts = null;
 
         if (pts != null) {
@@ -376,7 +376,7 @@ public class GLayer implements PConstants {
      * 
      * @return true if the (xPlot, yPlot) position is inside the layer limits
      */
-    protected boolean isInside(float xPlot, float yPlot) {
+    public boolean isInside(float xPlot, float yPlot) {
         return (xPlot >= 0) && (xPlot <= dim[0]) && (-yPlot >= 0) && (-yPlot <= dim[1]);
     }
 
@@ -389,7 +389,7 @@ public class GLayer implements PConstants {
      * 
      * @return true if the point is inside the layer limits
      */
-    protected boolean isInside(GPoint plotPoint) {
+    public boolean isInside(GPoint plotPoint) {
         if (plotPoint != null && plotPoint.isValid()) {
             return plotPoint.getX() >= 0 && plotPoint.getX() <= dim[0] && -plotPoint.getY() >= 0 && -plotPoint.getY() <= dim[1];
         } else {
@@ -407,7 +407,7 @@ public class GLayer implements PConstants {
      * @return a boolean array with the elements set to true if the point is
      *         inside the layer limits
      */
-    protected boolean[] isInside(GPointsArray plotPts) {
+    public boolean[] isInside(GPointsArray plotPts) {
         boolean[] pointsInside = null;
 
         if (plotPts != null) {
@@ -700,8 +700,7 @@ public class GLayer implements PConstants {
      *            GPlot.HORIZONTAL
      */
     public void startHistogram(int histType) {
-        hist = new GHistogram(parent, dim, plotPoints);
-        hist.setType(histType);
+        hist = new GHistogram(parent, histType, dim, plotPoints);
     }
 
     /**
@@ -1590,7 +1589,8 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Sets the layer dimensions
+     * Sets the layer dimensions, which should be equal to the plot box
+     * dimensions
      * 
      * @param newDim
      *            the new layer dimensions
@@ -1960,10 +1960,10 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Sets the font properties
+     * Sets all the font properties at once
      * 
      * @param newFontName
-     *            the new of the new font
+     *            the name of the new font
      * @param newFontColor
      *            the new font color
      * @param newFontSize
