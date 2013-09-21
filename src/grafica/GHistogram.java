@@ -342,6 +342,18 @@ public class GHistogram implements PConstants {
     }
 
     /**
+     * Sets the plot box dimensions information
+     * 
+     * @param xDim
+     *            the new plot box x dimension
+     * @param yDim
+     *            the new plot box y dimension
+     */
+    public void setDim(float xDim, float yDim) {
+        setDim(new float[] { xDim, yDim });
+    }
+
+    /**
      * Sets the point positions on the plot reference system
      * 
      * @param newPlotPoints

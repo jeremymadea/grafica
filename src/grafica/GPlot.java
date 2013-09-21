@@ -54,6 +54,8 @@ public class GPlot implements PConstants {
     protected boolean fixedYLim;
     protected boolean xLog;
     protected boolean yLog;
+    protected boolean invertedXScale;
+    protected boolean invertedYScale;
 
     // Format properties
     protected int bgColor;
@@ -91,7 +93,7 @@ public class GPlot implements PConstants {
 
         pos = new float[] { 0, 0 };
         outerDim = new float[] { 450, 300 };
-        mar = new float[] { 60, 90, 40, 20 };
+        mar = new float[] { 60, 70, 40, 20 };
         dim = new float[] { outerDim[0] - mar[1] - mar[3], outerDim[1] - mar[0] - mar[2] };
         xLim = new float[] { 0, 1 };
         yLim = new float[] { 0, 1 };
@@ -99,6 +101,8 @@ public class GPlot implements PConstants {
         fixedYLim = false;
         xLog = false;
         yLog = false;
+        invertedXScale = false;
+        invertedYScale = false;
 
         bgColor = this.parent.color(255);
         boxBgColor = this.parent.color(245);
@@ -346,6 +350,11 @@ public class GPlot implements PConstants {
             lim = xLim;
         }
 
+        // Invert the limits if necessary
+        if (invertedXScale) {
+            lim = new float[] { lim[1], lim[0] };
+        }
+
         return lim;
     }
 
@@ -399,6 +408,11 @@ public class GPlot implements PConstants {
             lim = new float[] { 0.1f, 10 };
         } else {
             lim = yLim;
+        }
+
+        // Invert the limits if necessary
+        if (invertedYScale) {
+            lim = new float[] { lim[1], lim[0] };
         }
 
         return lim;
@@ -1051,6 +1065,18 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets the plot position
+     * 
+     * @param x
+     *            the new plot x position on the screen
+     * @param y
+     *            the new plot y position on the screen
+     */
+    public void setPos(float x, float y) {
+        pos = new float[] { x, y };
+    }
+
+    /**
      * Sets the plot outer dimensions
      * 
      * @param newOuterDim
@@ -1081,6 +1107,18 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets the plot outer dimensions
+     * 
+     * @param xOuterDim
+     *            the new plot x outer dimension
+     * @param yOuterDim
+     *            the new plot y outer dimension
+     */
+    public void setOuterDim(float xOuterDim, float yOuterDim) {
+        setOuterDim(new float[] { xOuterDim, yOuterDim });
+    }
+
+    /**
      * Sets the plot margins
      * 
      * @param newMar
@@ -1088,24 +1126,12 @@ public class GPlot implements PConstants {
      */
     public void setMar(float[] newMar) {
         if (newMar != null && newMar.length == 4) {
-            // Make sure that the new dimensions are positive
-            float[] newDim = new float[] { outerDim[0] - newMar[1] - newMar[3], outerDim[1] - newMar[0] - newMar[2] };
+            // Make sure that the new outer dimensions are positive
+            float[] newOuterDim = new float[] { dim[0] + newMar[1] + newMar[3], dim[1] + newMar[0] + newMar[2] };
 
-            if (newDim[0] > 0 && newDim[1] > 0) {
+            if (newOuterDim[0] > 0 && newOuterDim[1] > 0) {
                 mar = newMar.clone();
-                dim = newDim;
-                xAxis.setDim(dim);
-                topAxis.setDim(dim);
-                yAxis.setDim(dim);
-                rightAxis.setDim(dim);
-                title.setDim(dim);
-
-                // Update the layers
-                mainLayer.setDim(dim);
-
-                for (int i = 0; i < layerList.size(); i++) {
-                    layerList.get(i).setDim(dim);
-                }
+                outerDim = newOuterDim;
             }
         }
     }
@@ -1141,6 +1167,18 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets the plot box dimensions
+     * 
+     * @param xDim
+     *            the new plot box x dimension
+     * @param yDim
+     *            the new plot box y dimension
+     */
+    public void setDim(float xDim, float yDim) {
+        setDim(new float[] { xDim, yDim });
+    }
+
+    /**
      * Sets the horizontal axes limits
      * 
      * @param newXLim
@@ -1153,6 +1191,7 @@ public class GPlot implements PConstants {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
                 xLim = newXLim.clone();
+                invertedXScale = xLim[0] > xLim[1];
 
                 // Fix the limits
                 fixedXLim = true;
@@ -1190,6 +1229,7 @@ public class GPlot implements PConstants {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
                 yLim = newYLim.clone();
+                invertedYScale = yLim[0] > yLim[1];
 
                 // Fix the limits
                 fixedYLim = true;
@@ -1294,6 +1334,54 @@ public class GPlot implements PConstants {
 
             for (int i = 0; i < layerList.size(); i++) {
                 layerList.get(i).setLimAndLog(xLim, yLim, xLog, yLog);
+            }
+        }
+    }
+
+    /**
+     * Sets if the scale of the horizontal axes should be inverted or not
+     * 
+     * @param newInvertedXScale
+     *            true if the horizontal scale should be inverted
+     */
+    public void setInvertedXScale(boolean newInvertedXScale) {
+        if (newInvertedXScale != invertedXScale) {
+            invertedXScale = newInvertedXScale;
+            xLim = new float[] { xLim[1], xLim[0] };
+
+            // Update the axes
+            xAxis.setLim(xLim);
+            topAxis.setLim(xLim);
+
+            // Update the layers
+            mainLayer.setXLim(xLim);
+
+            for (int i = 0; i < layerList.size(); i++) {
+                layerList.get(i).setXLim(xLim);
+            }
+        }
+    }
+
+    /**
+     * Sets if the scale of the vertical axes should be inverted or not
+     * 
+     * @param newInvertedYScale
+     *            true if the vertical scale should be inverted
+     */
+    public void setInvertedYScale(boolean newInvertedYScale) {
+        if (newInvertedYScale != invertedYScale) {
+            invertedYScale = newInvertedYScale;
+            yLim = new float[] { yLim[1], yLim[0] };
+
+            // Update the axes
+            yAxis.setLim(yLim);
+            rightAxis.setLim(yLim);
+
+            // Update the layers
+            mainLayer.setYLim(yLim);
+
+            for (int i = 0; i < layerList.size(); i++) {
+                layerList.get(i).setYLim(yLim);
             }
         }
     }
@@ -1495,6 +1583,42 @@ public class GPlot implements PConstants {
      */
     public void setLabelSeparation(float[] labelSeparation) {
         mainLayer.setLabelSeparation(labelSeparation);
+    }
+
+    /**
+     * Set the plot title text
+     * 
+     * @param text
+     *            the plot title text
+     */
+    public void setTitleText(String text) {
+        title.setText(text);
+    }
+
+    /**
+     * Sets the axis offset for all the axes in the plot
+     * 
+     * @param offset
+     *            the new axis offset
+     */
+    public void setAxesOffset(float offset) {
+        xAxis.setOffset(offset);
+        topAxis.setOffset(offset);
+        yAxis.setOffset(offset);
+        rightAxis.setOffset(offset);
+    }
+
+    /**
+     * Sets the tick length for all the axes in the plot
+     * 
+     * @param tickLength
+     *            the new tick length
+     */
+    public void setTicksLength(float tickLength) {
+        xAxis.setTickLength(tickLength);
+        topAxis.setTickLength(tickLength);
+        yAxis.setTickLength(tickLength);
+        rightAxis.setTickLength(tickLength);
     }
 
     /**

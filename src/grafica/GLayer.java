@@ -1609,12 +1609,24 @@ public class GLayer implements PConstants {
     }
 
     /**
+     * Sets the layer dimensions
+     * 
+     * @param xDim
+     *            the new layer x dimension
+     * @param yDim
+     *            the new layer y dimension
+     */
+    public void setDim(float xDim, float yDim) {
+        setDim(new float[] { xDim, yDim });
+    }
+
+    /**
      * Sets the horizontal limits
      * 
      * @param newXLim
      *            the new horizontal limits
      */
-    public void setXlim(float[] newXLim) {
+    public void setXLim(float[] newXLim) {
         if (newXLim != null && newXLim.length == 2 && newXLim[1] != newXLim[0] && isValidNumber(newXLim[0]) && isValidNumber(newXLim[1])) {
             // Make sure the new limits makes sense
             if (xLog && (newXLim[0] <= 0 || newXLim[1] <= 0)) {
@@ -1637,7 +1649,7 @@ public class GLayer implements PConstants {
      * @param newYLim
      *            the new vertical limits
      */
-    public void setYlim(float[] newYLim) {
+    public void setYLim(float[] newYLim) {
         if (newYLim != null && newYLim.length == 2 && newYLim[1] != newYLim[0] && isValidNumber(newYLim[0]) && isValidNumber(newYLim[1])) {
             // Make sure the new limits makes sense
             if (yLog && (newYLim[0] <= 0 || newYLim[1] <= 0)) {

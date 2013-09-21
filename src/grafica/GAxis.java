@@ -219,19 +219,26 @@ public class GAxis implements PConstants {
                 step = roundPlus((lim[1] - lim[0]) / nTicks, sigDigits);
             }
 
-            // Obtain the first tick
-            float firstTick = roundPlus(lim[0], sigDigits);
+            int nSteps = PApplet.floor((lim[1] - lim[0]) / step);
 
-            if ((lim[1] - firstTick) * (lim[0] - firstTick) > 0) {
-                firstTick = roundPlus(lim[0] + step, sigDigits);
-            }
+            if (nSteps > 0) {
+                // Obtain the first tick
+                float firstTick = lim[0] + ((lim[1] - lim[0]) - nSteps * step) / 2;
 
-            // Calculate the rest of the ticks
-            linearTicks = new float[PApplet.floor(Math.abs((lim[1] - firstTick) / step)) + 1];
-            linearTicks[0] = firstTick;
+                // Subtract some steps to be sure we have all
+                firstTick = roundPlus(firstTick - 2 * step, sigDigits);
 
-            for (int i = 1; i < linearTicks.length; i++) {
-                linearTicks[i] = roundPlus(linearTicks[i - 1] + step, sigDigits);
+                while ((lim[1] - firstTick) * (lim[0] - firstTick) > 0) {
+                    firstTick = roundPlus(firstTick + step, sigDigits);
+                }
+
+                // Calculate the rest of the ticks
+                linearTicks = new float[PApplet.floor(Math.abs((lim[1] - firstTick) / step)) + 1];
+                linearTicks[0] = firstTick;
+
+                for (int i = 1; i < linearTicks.length; i++) {
+                    linearTicks[i] = roundPlus(linearTicks[i - 1] + step, sigDigits);
+                }
             }
         }
 
@@ -700,6 +707,18 @@ public class GAxis implements PConstants {
     }
 
     /**
+     * Sets the plot box dimensions information
+     * 
+     * @param xDim
+     *            the new plot box x dimension
+     * @param yDim
+     *            the new plot box y dimension
+     */
+    public void setDim(float xDim, float yDim) {
+        setDim(new float[] { xDim, yDim });
+    }
+
+    /**
      * Sets the axis limits
      * 
      * @param newLim
@@ -954,6 +973,16 @@ public class GAxis implements PConstants {
      */
     public void setDrawAxisLabel(boolean newDrawAxisLabel) {
         drawAxisLabel = newDrawAxisLabel;
+    }
+
+    /**
+     * Sets the axis label text
+     * 
+     * @param text
+     *            the new axis label text
+     */
+    public void setAxisLabelText(String text) {
+        lab.setText(text);
     }
 
     /**

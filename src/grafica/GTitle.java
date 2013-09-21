@@ -106,6 +106,18 @@ public class GTitle implements PConstants {
     }
 
     /**
+     * Sets the plot box dimensions information
+     * 
+     * @param xDim
+     *            the new plot box x dimension
+     * @param yDim
+     *            the new plot box y dimension
+     */
+    public void setDim(float xDim, float yDim) {
+        setDim(new float[] { xDim, yDim });
+    }
+
+    /**
      * Sets the title relative position in the plot
      * 
      * @param newRelativePos

@@ -218,6 +218,18 @@ public class GAxisLabel implements PConstants {
     }
 
     /**
+     * Sets the plot box dimensions information
+     * 
+     * @param xDim
+     *            the new plot box x dimension
+     * @param yDim
+     *            the new plot box y dimension
+     */
+    public void setDim(float xDim, float yDim) {
+        setDim(new float[] { xDim, yDim });
+    }
+
+    /**
      * Sets the label relative position in the axis
      * 
      * @param newRelativePos
