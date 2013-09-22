@@ -2081,6 +2081,42 @@ public class GLayer implements PConstants {
     }
 
     /**
+     * Returns the layer point colors array
+     * 
+     * @return the layer point colors array
+     */
+    public int[] getPointColors() {
+        return pointColors.clone();
+    }
+
+    /**
+     * Returns the layer point sizes array
+     * 
+     * @return the layer point sizes array
+     */
+    public float[] getPointSizes() {
+        return pointSizes.clone();
+    }
+
+    /**
+     * Returns the layer line color
+     * 
+     * @return the layer line color
+     */
+    public int getLineColor() {
+        return lineColor;
+    }
+
+    /**
+     * Returns the layer line width
+     * 
+     * @return the layer line width
+     */
+    public float getLineWidth() {
+        return lineWidth;
+    }
+
+    /**
      * Returns the layer histogram
      * 
      * @return the layer histogram

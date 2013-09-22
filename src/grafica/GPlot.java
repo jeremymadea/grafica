@@ -93,7 +93,7 @@ public class GPlot implements PConstants {
 
         pos = new float[] { 0, 0 };
         outerDim = new float[] { 450, 300 };
-        mar = new float[] { 60, 70, 40, 20 };
+        mar = new float[] { 60, 70, 40, 30 };
         dim = new float[] { outerDim[0] - mar[1] - mar[3], outerDim[1] - mar[0] - mar[2] };
         xLim = new float[] { 0, 1 };
         yLim = new float[] { 0, 1 };
@@ -1050,6 +1050,43 @@ public class GPlot implements PConstants {
      */
     public void drawAnnotation(String text, float x, float y, int horAlign, int verAlign) {
         mainLayer.drawAnnotation(text, x, y, horAlign, verAlign);
+    }
+
+    /**
+     * Draws a legend at the specified relative position
+     * 
+     * @param text
+     *            the text to use for each layer in the plot
+     * @param xRelativePos
+     *            the plot x relative position for each layer in the plot
+     * @param yRelativePos
+     *            the plot y relative position for each layer in the plot
+     */
+    public void drawLegend(String[] text, float[] xRelativePos, float[] yRelativePos) {
+        if (text != null && xRelativePos != null && yRelativePos != null && text.length == xRelativePos.length
+                && xRelativePos.length == yRelativePos.length) {
+            parent.pushStyle();
+            parent.rectMode(CENTER);
+            parent.noStroke();
+
+            for (int i = 0; i < text.length; i++) {
+                float[] plotPosition = new float[] { xRelativePos[i] * dim[0], -yRelativePos[i] * dim[1] };
+                float[] position = mainLayer.plotToValue(plotPosition[0], plotPosition[1]);
+
+                if (i == 0) {
+                    parent.fill(mainLayer.getLineColor());
+                    parent.rect(plotPosition[0] - 15, plotPosition[1], 14, 14);
+                    mainLayer.drawAnnotation(text[i], position[0], position[1], LEFT, CENTER);
+                } else {
+                    parent.fill(layerList.get(i - 1).getLineColor());
+                    parent.rect(plotPosition[0] - 15, plotPosition[1], 14, 14);
+                    layerList.get(i - i).drawAnnotation(text[i], position[0], position[1], LEFT, CENTER);
+                }
+            }
+
+            parent.popStyle();
+        }
+
     }
 
     /**
