@@ -13,10 +13,10 @@ With it you can easily create 2D plots that will enjoy the full interactive capa
   * You can use svg files and PShapes to represent your points.
   * Highly customizable. Defaults are nice, but you can tweak almost everything.
   * Processing coding style. If you are used to work with Processing, grafica will be very easy.
-  * It comes with a good set of [examples](https://github.com/jagracar/grafica/tree/master/examples).
-  * It's open source. grafica is under the GNU Lesser General Public License. You can find the complete source code in this page.
+  * It comes with a good set of [examples](https://github.com/jagracar/grafica/tree/master/distribution/grafica-1/examples).
+  * It's open source. grafica is under the GNU Lesser General Public License. You can find the complete source code [here](https://github.com/jagracar/grafica/tree/master/src/grafica).
 
 ## Installation
 
-Download the latest library release [here](https://github.com/jagracar/grafica/releases) and follow the steps 
+Download the [latest library release](https://github.com/jagracar/grafica/blob/master/distribution/grafica-1/download/grafica-1.zip) (click on View Raw) and follow the steps 
 described in the [Processing wiki](http://wiki.processing.org/w/How_to_Install_a_Contributed_Library).
