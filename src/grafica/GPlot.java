@@ -452,10 +452,10 @@ public class GPlot implements PConstants {
         }
 
         // Update the layers
-        mainLayer.setLimits(xLim, yLim);
+        mainLayer.setXYLim(xLim, yLim);
 
         for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).setLimits(xLim, yLim);
+            layerList.get(i).setXYLim(xLim, yLim);
         }
     }
 
@@ -492,10 +492,10 @@ public class GPlot implements PConstants {
         }
 
         // Update the layers
-        mainLayer.setLimits(xLim, yLim);
+        mainLayer.setXYLim(xLim, yLim);
 
         for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).setLimits(xLim, yLim);
+            layerList.get(i).setXYLim(xLim, yLim);
         }
     }
 
@@ -541,10 +541,10 @@ public class GPlot implements PConstants {
         rightAxis.setLim(yLim);
 
         // Update the layers
-        mainLayer.setLimits(xLim, yLim);
+        mainLayer.setXYLim(xLim, yLim);
 
         for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).setLimits(xLim, yLim);
+            layerList.get(i).setXYLim(xLim, yLim);
         }
     }
 
@@ -589,10 +589,10 @@ public class GPlot implements PConstants {
         rightAxis.moveLim(yLim);
 
         // Update the layers
-        mainLayer.setLimits(xLim, yLim);
+        mainLayer.setXYLim(xLim, yLim);
 
         for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).setLimits(xLim, yLim);
+            layerList.get(i).setXYLim(xLim, yLim);
         }
     }
 
@@ -1244,10 +1244,10 @@ public class GPlot implements PConstants {
                 }
 
                 // Update the layers
-                mainLayer.setLimits(xLim, yLim);
+                mainLayer.setXYLim(xLim, yLim);
 
                 for (int i = 0; i < layerList.size(); i++) {
-                    layerList.get(i).setLimits(xLim, yLim);
+                    layerList.get(i).setXYLim(xLim, yLim);
                 }
             }
         }
@@ -1282,10 +1282,10 @@ public class GPlot implements PConstants {
                 }
 
                 // Update the layers
-                mainLayer.setLimits(xLim, yLim);
+                mainLayer.setXYLim(xLim, yLim);
 
                 for (int i = 0; i < layerList.size(); i++) {
-                    layerList.get(i).setLimits(xLim, yLim);
+                    layerList.get(i).setXYLim(xLim, yLim);
                 }
             }
         }
@@ -1509,10 +1509,10 @@ public class GPlot implements PConstants {
             }
 
             // Update the layers
-            mainLayer.setLimits(xLim, yLim);
+            mainLayer.setXYLim(xLim, yLim);
 
             for (int i = 0; i < layerList.size(); i++) {
-                layerList.get(i).setLimits(xLim, yLim);
+                layerList.get(i).setXYLim(xLim, yLim);
             }
 
             // Add the points to the main layer

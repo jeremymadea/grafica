@@ -1674,7 +1674,7 @@ public class GLayer implements PConstants {
      * @param newYLim
      *            the new vertical limits
      */
-    public void setLimits(float[] newXLim, float[] newYLim) {
+    public void setXYLim(float[] newXLim, float[] newYLim) {
         if (newXLim != null && newYLim != null && newXLim.length == 2 && newYLim.length == 2 && newXLim[1] != newXLim[0]
                 && newYLim[1] != newYLim[0] && isValidNumber(newXLim[0]) && isValidNumber(newXLim[1]) && isValidNumber(newYLim[0])
                 && isValidNumber(newYLim[1])) {
