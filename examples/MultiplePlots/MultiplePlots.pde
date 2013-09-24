@@ -9,13 +9,10 @@ public float[] uniformStack;
 public int gaussianCounter;
 public int uniformCounter;
 public PShape mug, star;
-public float[] cursorVal = null;
 public Random r;
 
 public void setup(){
   size(850, 650);
-  smooth();
-  frameRate(100);
 
   // Obtain the points for the first plot  
   GPointsArray points1a = new GPointsArray(500);
@@ -28,7 +25,7 @@ public void setup(){
     points1c.add(i, noise(1000 + 0.1*i), "point " + i);
   }
   
-  // Create a polygon to display in the plot  
+  // Create a polygon to display inside the plot  
   polygonPoints = new GPointsArray(5);
   polygonPoints.add(new GPoint(2, 0.15));
   polygonPoints.add(new GPoint(6, 0.12));
@@ -135,6 +132,22 @@ public void setup(){
   plot4.getTitle().setRelativePos(0.1);
   plot4.setPoints(points4);
   plot4.startHistograms(GPlot.VERTICAL);
+  
+  // Setup the mouse actions
+  plot1.activatePanning();
+  plot1.activatePointLabels();
+  plot2.activateZooming();
+  plot3.activateCentering();
+  plot4.activateZooming();
+
+  // Load some shapes to use later in the plots
+  mug = loadShape("beermug.svg");
+  mug.scale(0.7);
+  mug.translate(-mug.width/2, -mug.height/2);
+   
+  star = loadShape("star.svg");
+  star.translate(-star.width/2, -star.height/2);
+  star.disableStyle();
 }
 
 
@@ -151,12 +164,9 @@ public void draw(){
     plot1.drawRightAxis();
     plot1.drawTitle();
     plot1.drawFilledContours(GPlot.HORIZONTAL, 0.05);
-    //plot1.drawPoint(new GPoint(65, 1.5), mug);
+    plot1.drawPoint(new GPoint(65, 1.5), mug);
     plot1.drawPolygon(polygonPoints, color(255, 200));
-            
-    if(mousePressed){
-      plot1.drawLabelsAt(mouseX, mouseY);
-    }
+    plot1.drawLabels();
   plot1.endDraw();
 
 
@@ -190,11 +200,7 @@ public void draw(){
     plot2.drawTitle();
     plot2.drawGridLines(GPlot.BOTH);
     plot2.drawLines();
-    plot2.drawPoints();
-    
-    if(mousePressed){
-      plot2.drawLabelsAt(mouseX, mouseY);
-    }
+    plot2.drawPoints(star);
   plot2.endDraw();
 
 
@@ -222,10 +228,6 @@ public void draw(){
     plot3.drawYAxis();
     plot3.drawTitle();
     plot3.drawHistograms();
-    
-    if(mousePressed){
-      plot3.drawLabelsAt(mouseX, mouseY);
-    }
   plot3.endDraw();
 
 
@@ -282,46 +284,5 @@ public void draw(){
     plot4.drawYAxis();
     plot4.drawTitle();
     plot4.drawHistograms();
-    
-    if(mousePressed){
-      plot4.drawLabelsAt(mouseX, mouseY);
-    }
   plot4.endDraw();
- 
-  frame.setTitle("Plot examples // " + int(frameRate) + " fps");
-}
-
-
-void mouseDragged(){
-  // Actions over the first plot (panning)
-  if(plot1.isOverBox(mouseX, mouseY) && cursorVal == null){
-    cursorVal = plot1.getValueAt(mouseX, mouseY);
-  }
-  
-  if(mousePressed && cursorVal != null){
-    plot1.align(cursorVal, mouseX, mouseY);
-  }
-}
-
-void mouseReleased(){
-  cursorVal = null;
-}
-
-void mouseClicked(){
-  // Actions over the second plot (zooming)
-  if(plot2.isOverBox(mouseX, mouseY)){
-    float zoomFactor = (mouseButton == LEFT)? 1.3 : 0.77;
-    plot2.zoom(zoomFactor, mouseX, mouseY);
-  }
-
-  // Actions over the third plot (recentering)
-  if(plot3.isOverBox(mouseX, mouseY)){
-    plot3.center(mouseX, mouseY);
-  }
-  
-  // Actions over the second plot (zooming)
-  if(plot4.isOverBox(mouseX, mouseY)){
-    float zoomFactor = (mouseButton == LEFT)? 1.3 : 0.77;
-    plot4.zoom(zoomFactor, mouseX, mouseY);
-  }
 }

@@ -9,6 +9,7 @@ void setup(){
   float[] panelDim = new float[] { 200, 200 };
   float[] margins = new float[] { 60, 70, 40, 30};
 
+  // Create four plots to represent the 4 panels
   GPlot plot1 = new GPlot(this);
   plot1.setPos(firstPlotPos);
   plot1.setMar(new float[] {0, margins[1], margins[2], 0});
@@ -41,7 +42,7 @@ void setup(){
   plot4.setTicksLength(-4);
   plot4.getYAxis().setDrawTickLabels(false);
 
-  // Prepare the points for the first plot
+  // Prepare the points for the four plots
   int nPoints = 21;
   GPointsArray points1 = new GPointsArray(nPoints);
   GPointsArray points2 = new GPointsArray(nPoints);
@@ -55,13 +56,14 @@ void setup(){
     points4.add(i, i);
   }  
   
-  // Set the plot title and the axis labels
+  // Set the points, the title and the axis labels
   plot1.setPoints(points1);
   plot1.getYAxis().setAxisLabelText("cos(i)");
-  plot1.setTitleText("A very simple example");
+  plot1.setTitleText("Plot with multiple panels");
+  plot1.getTitle().setRelativePos(1);
+  plot1.getTitle().setTextAlignment(CENTER);
 
   plot2.setPoints(points2);
-  plot2.setTitleText("A very simple example");
 
   plot3.setPoints(points3);
   plot3.getXAxis().setAxisLabelText("sin(i)");
@@ -90,7 +92,6 @@ void setup(){
     plot2.drawYAxis();
     plot2.drawTopAxis();
     plot2.drawRightAxis();
-    plot2.drawTitle();
     plot2.drawPoints();
     plot2.drawLines();
   plot2.endDraw();
@@ -101,7 +102,6 @@ void setup(){
     plot3.drawYAxis();
     plot3.drawTopAxis();
     plot3.drawRightAxis();
-    plot3.drawTitle();
     plot3.drawPoints();
     plot3.drawLines();
   plot3.endDraw();
@@ -112,9 +112,7 @@ void setup(){
     plot4.drawYAxis();
     plot4.drawTopAxis();
     plot4.drawRightAxis();
-    plot4.drawTitle();
     plot4.drawPoints();
     plot4.drawLines();
   plot4.endDraw();
-  
 }

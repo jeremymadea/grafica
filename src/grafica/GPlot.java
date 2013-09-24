@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PShape;
+import processing.event.MouseEvent;
 
 /**
  * Plot class. It controls the rest of the graphical elements (layers, axes,
@@ -82,6 +83,15 @@ public class GPlot implements PConstants {
     public static final int BOTH = 2;
     public static final float LOG10 = (float) Math.log(10);
 
+    // Mouse events
+    protected boolean zoomingIsActive;
+    protected boolean centeringIsActive;
+    protected boolean panningIsActive;
+    protected boolean labelingIsActive;
+    protected float zoomFactor;
+    protected float[] panningReferencePoint;
+    protected float[] mousePos;
+
     /**
      * GPlot constructor
      * 
@@ -119,6 +129,16 @@ public class GPlot implements PConstants {
         yAxis = new GAxis(this.parent, Y, dim, yLim, yLog);
         rightAxis = new GAxis(this.parent, RIGHT, dim, yLim, yLog);
         title = new GTitle(this.parent, dim);
+
+        // Setup for the mouse events
+        this.parent.registerMethod("mouseEvent", this);
+        zoomingIsActive = false;
+        centeringIsActive = false;
+        panningIsActive = false;
+        labelingIsActive = false;
+        zoomFactor = 1.3f;
+        panningReferencePoint = null;
+        mousePos = null;
     }
 
     /**
@@ -971,6 +991,22 @@ public class GPlot implements PConstants {
 
         for (int i = 0; i < layerList.size(); i++) {
             layerList.get(i).drawLabelAtPlotPos(plotPos[0], plotPos[1]);
+        }
+    }
+
+    /**
+     * Draws the labels of the points in the layers that are close to the mouse
+     * position. In order to work, you need to activate first the points
+     * labeling with the command plot.activatePointLabels()
+     */
+    public void drawLabels() {
+        if (labelingIsActive && mousePos != null) {
+            float[] plotPos = getPlotPosAt(mousePos[0], mousePos[1]);
+            mainLayer.drawLabelAtPlotPos(plotPos[0], plotPos[1]);
+
+            for (int i = 0; i < layerList.size(); i++) {
+                layerList.get(i).drawLabelAtPlotPos(plotPos[0], plotPos[1]);
+            }
         }
     }
 
@@ -1922,5 +1958,118 @@ public class GPlot implements PConstants {
      */
     public GHistogram getHistogram() {
         return mainLayer.getHistogram();
+    }
+
+    /**
+     * Activates the option to zoom with the mouse
+     */
+    public void activateZooming() {
+        zoomingIsActive = true;
+    }
+
+    /**
+     * Deactivates the option to zoom with the mouse
+     */
+    public void deactivateZooming() {
+        zoomingIsActive = false;
+    }
+
+    /**
+     * Activates the option to center the plot with the mouse
+     */
+    public void activateCentering() {
+        centeringIsActive = true;
+    }
+
+    /**
+     * Deactivates the option to center the plot with the mouse
+     */
+    public void deactivateCentering() {
+        centeringIsActive = false;
+    }
+
+    /**
+     * Activates the option to pan the plot with the mouse
+     */
+    public void activatePanning() {
+        panningIsActive = true;
+    }
+
+    /**
+     * Deactivates the option to pan the plot with the mouse
+     */
+    public void deactivatePanning() {
+        panningIsActive = false;
+    }
+
+    /**
+     * Activates the option to draw the labels of the points with the mouse
+     */
+    public void activatePointLabels() {
+        labelingIsActive = true;
+    }
+
+    /**
+     * Deactivates the option to draw the labels of the points with the mouse
+     */
+    public void deactivatePointLabels() {
+        labelingIsActive = false;
+    }
+
+    /**
+     * Mouse events (zooming, centering, panning, labeling)
+     * 
+     * @param event
+     *            the mouse event detected by the processing applet
+     */
+    public void mouseEvent(MouseEvent event) {
+        if (zoomingIsActive) {
+            if (event.getAction() == MouseEvent.PRESS) {
+                float xMouse = event.getX();
+                float yMouse = event.getY();
+
+                if (isOverBox(xMouse, yMouse)) {
+                    if (event.getButton() == LEFT) {
+                        zoom(zoomFactor, xMouse, yMouse);
+                    } else if (event.getButton() == RIGHT) {
+                        zoom(1 / zoomFactor, xMouse, yMouse);
+                    }
+                }
+            }
+        }
+
+        if (centeringIsActive) {
+            if (event.getAction() == MouseEvent.PRESS) {
+                float xMouse = event.getX();
+                float yMouse = event.getY();
+
+                if (isOverBox(xMouse, yMouse)) {
+                    center(xMouse, yMouse);
+                }
+            }
+        }
+
+        if (panningIsActive) {
+            if (event.getAction() == MouseEvent.DRAG) {
+                float xMouse = event.getX();
+                float yMouse = event.getY();
+
+                if (panningReferencePoint != null) {
+                    align(panningReferencePoint, xMouse, yMouse);
+                } else if (isOverBox(xMouse, yMouse)) {
+                    panningReferencePoint = getValueAt(xMouse, yMouse);
+                }
+            } else if (event.getAction() == MouseEvent.RELEASE) {
+                panningReferencePoint = null;
+            }
+        }
+
+        if (labelingIsActive) {
+            if (event.getAction() == MouseEvent.PRESS) {
+                mousePos = new float[] { event.getX(), event.getY() };
+            } else {
+                mousePos = null;
+            }
+        }
     }
 }

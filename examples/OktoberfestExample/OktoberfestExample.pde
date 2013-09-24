@@ -8,7 +8,6 @@ int[] daysPerMonthLeapYear = new int[]{31,29,31,30,31,30,31,31,30,31,30,31};
 
 GPlot plot;
 
-
 void setup(){
   size(800, 400);
   
@@ -52,8 +51,8 @@ void setup(){
   plot.setLineColor(color(100, 100, 100));
   plot.addLayer("German elections day", pointsElections);
   plot.getLayer("German elections day").setLineColor(color(255, 100, 255));
+  plot.activatePointLabels();
 }
-
 
 void draw(){
   background(255);
@@ -69,10 +68,7 @@ void draw(){
     plot.drawLegend(new String[]{"Oktoberfest","Bundestagswahl"}, 
                     new float[]{0.07,0.22}, 
                     new float[]{0.92, 0.92});
-
-    if(mousePressed && plot.isOverPlot(mouseX, mouseY)){
-      plot.drawLabelsAt(mouseX, mouseY);
-    }
+    plot.drawLabels();
   plot.endDraw();
 }  
 
