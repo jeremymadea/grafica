@@ -1,6 +1,7 @@
 grafica is a simple and configurable plotting library for [Processing](http://processing.org).
 With it you can easily create 2D plots that will enjoy the full interactive capabilities of Processing. 
 
+
 ## Main features
 
   * Make fancy scatter and linear plots that update in real time.
