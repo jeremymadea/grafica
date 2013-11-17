@@ -142,6 +142,41 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * GPlot constructor
+     * 
+     * @param parent
+     *            the parent Processing applet
+     * @param xPos
+     *            the plot x position on the screen
+     * @param yPos
+     *            the plot y position on the screen
+     */
+    public GPlot(PApplet parent, float xPos, float yPos) {
+        this(parent);
+        setPos(xPos, yPos);
+    }
+
+    /**
+     * GPlot constructor
+     * 
+     * @param parent
+     *            the parent Processing applet
+     * @param xPos
+     *            the plot x position on the screen
+     * @param yPos
+     *            the plot y position on the screen
+     * @param plotWidth
+     *            the plot x outer dimension
+     * @param plotHeight
+     *            the plot y outer dimension
+     */
+    public GPlot(PApplet parent, float xPos, float yPos, float plotWidth, float plotHeight) {
+        this(parent);
+        setPos(xPos, yPos);
+        setOuterDim(plotWidth, plotHeight);
+    }
+
+    /**
      * Adds a layer to the plot
      * 
      * @param newLayer
