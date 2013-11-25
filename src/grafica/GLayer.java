@@ -228,7 +228,7 @@ public class GLayer implements PConstants {
      * system
      * 
      * @param pts
-     *            the set of point
+     *            the set of points
      * 
      * @return a copy of the set of point with their positions transformed to
      *         the plot reference system

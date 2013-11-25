@@ -12,7 +12,7 @@ void setup(){
   // Create four plots to represent the 4 panels
   GPlot plot1 = new GPlot(this);
   plot1.setPos(firstPlotPos);
-  plot1.setMar(new float[] {0, margins[1], margins[2], 0});
+  plot1.setMar(0, margins[1], margins[2], 0);
   plot1.setDim(panelDim);
   plot1.setAxesOffset(0);
   plot1.setTicksLength(-4);
@@ -20,7 +20,7 @@ void setup(){
   
   GPlot plot2 = new GPlot(this);
   plot2.setPos(firstPlotPos[0] + margins[1] + panelDim[0], firstPlotPos[1]);
-  plot2.setMar(new float[] {0, 0, margins[2], margins[3]});
+  plot2.setMar(0, 0, margins[2], margins[3]);
   plot2.setDim(panelDim);
   plot2.setAxesOffset(0);
   plot2.setTicksLength(-4);
@@ -29,14 +29,14 @@ void setup(){
   
   GPlot plot3 = new GPlot(this);
   plot3.setPos(firstPlotPos[0], firstPlotPos[1] + margins[2] + panelDim[1]);
-  plot3.setMar(new float[] {margins[0], margins[1], 0, 0});
+  plot3.setMar(margins[0], margins[1], 0, 0);
   plot3.setDim(panelDim);
   plot3.setAxesOffset(0);
   plot3.setTicksLength(-4);
 
   GPlot plot4 = new GPlot(this);
   plot4.setPos(firstPlotPos[0] + margins[1] + panelDim[0], firstPlotPos[1] + margins[2] + panelDim[1]);
-  plot4.setMar(new float[] {margins[0], 0, 0, margins[3]});
+  plot4.setMar(margins[0], 0, 0, margins[3]);
   plot4.setDim(panelDim);
   plot4.setAxesOffset(0);
   plot4.setTicksLength(-4);

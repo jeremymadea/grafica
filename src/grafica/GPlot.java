@@ -108,6 +108,11 @@ public class GPlot implements PConstants {
     protected int labelingButton;
     protected int labelingKeyModifier;
     protected float[] mousePos;
+    protected boolean resetIsActive;
+    protected int resetButton;
+    protected int resetKeyModifier;
+    protected float[] xLimSave;
+    protected float[] yLimSave;
 
     /**
      * GPlot constructor
@@ -168,6 +173,11 @@ public class GPlot implements PConstants {
         labelingButton = LEFT;
         labelingKeyModifier = NONE;
         mousePos = null;
+        resetIsActive = false;
+        resetButton = RIGHT;
+        resetKeyModifier = CTRLMOD;
+        xLimSave = null;
+        yLimSave = null;
     }
 
     /**
@@ -217,10 +227,14 @@ public class GPlot implements PConstants {
             String id = newLayer.getId();
             boolean sameId = false;
 
-            for (int i = 0; i < layerList.size(); i++) {
-                if (layerList.get(i).isId(id)) {
-                    sameId = true;
-                    break;
+            if (mainLayer.isId(id)) {
+                sameId = true;
+            } else {
+                for (int i = 0; i < layerList.size(); i++) {
+                    if (layerList.get(i).isId(id)) {
+                        sameId = true;
+                        break;
+                    }
                 }
             }
 
@@ -230,8 +244,10 @@ public class GPlot implements PConstants {
                 newLayer.setLimAndLog(xLim, yLim, xLog, yLog);
                 layerList.add(newLayer);
 
-                // Calculate and update the new plot limits
-                updateLimits(includeAllLayers, expandAxisFactor);
+                // Calculate and update the new plot limits if necessary
+                if (includeAllLayers) {
+                    updateLimits();
+                }
             } else {
                 PApplet.println("A layer with the same id exists. Please change the id and try to add it again.");
             }
@@ -250,10 +266,14 @@ public class GPlot implements PConstants {
         // Check that it is the only layer with that id
         boolean sameId = false;
 
-        for (int i = 0; i < layerList.size(); i++) {
-            if (layerList.get(i).isId(id)) {
-                sameId = true;
-                break;
+        if (mainLayer.isId(id)) {
+            sameId = true;
+        } else {
+            for (int i = 0; i < layerList.size(); i++) {
+                if (layerList.get(i).isId(id)) {
+                    sameId = true;
+                    break;
+                }
             }
         }
 
@@ -263,15 +283,18 @@ public class GPlot implements PConstants {
             newLayer.setPoints(points);
             layerList.add(newLayer);
 
-            // Calculate and update the new plot limits
-            updateLimits(includeAllLayers, expandAxisFactor);
+            // Calculate and update the new plot limits if necessary
+            if (includeAllLayers) {
+                updateLimits();
+            }
         } else {
             PApplet.println("A layer with the same id exists. Please change the id and try to add it again.");
         }
     }
 
     /**
-     * Removes an exiting layer from the plot
+     * Removes an exiting layer from the plot, provided it is not the plot main
+     * layer
      * 
      * @param id
      *            the id of the layer to remove
@@ -289,8 +312,10 @@ public class GPlot implements PConstants {
         if (index >= 0) {
             layerList.remove(index);
 
-            // Calculate and update the new plot limits
-            updateLimits(includeAllLayers, expandAxisFactor);
+            // Calculate and update the new plot limits if necessary
+            if (includeAllLayers) {
+                updateLimits();
+            }
         } else {
             PApplet.println("Couldn't find a layer in the plot with id = " + id);
         }
@@ -315,6 +340,27 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Calculates the position of a given (x, y) point in the parent Processing
+     * applet screen
+     * 
+     * @param xValue
+     *            the x value
+     * @param yValue
+     *            the y value
+     * 
+     * @return the position of the (x, y) point in the parent Processing applet
+     *         screen
+     */
+    public float[] getScreenPosAtValue(float xValue, float yValue) {
+        float[] plotPos = mainLayer.valueToPlot(xValue, yValue);
+
+        float xScreen = plotPos[0] + (pos[0] + mar[1]);
+        float yScreen = plotPos[1] + (pos[1] + mar[2] + dim[1]);
+
+        return new float[] { xScreen, yScreen };
+    }
+
+    /**
      * Returns the closest point in the main layer to a given screen position
      * 
      * @param xScreen
@@ -322,7 +368,8 @@ public class GPlot implements PConstants {
      * @param yScreen
      *            y screen position in the parent Processing applet
      * 
-     * @return the closest point in the plot main layer
+     * @return the closest point in the plot main layer. Null if there is not a
+     *         close point
      */
     public GPoint getPointAt(float xScreen, float yScreen) {
         float[] plotPos = getPlotPosAt(xScreen, yScreen);
@@ -341,7 +388,8 @@ public class GPlot implements PConstants {
      * @param layerId
      *            the layer id
      * 
-     * @return the closest point in the specified layer
+     * @return the closest point in the specified layer. Null if there is not a
+     *         close point
      */
     public GPoint getPointAt(float xScreen, float yScreen, String layerId) {
         GPoint p = null;
@@ -424,23 +472,17 @@ public class GPlot implements PConstants {
 
     /**
      * Calculates and updates the plot x and y limits
-     * 
-     * @param useAllLayers
-     *            if true, all layers will be considered in the limit
-     *            calculation. If false, only the main layer will be used
-     * @param expandFactor
-     *            the relative factor to use to expand the plot limits
      */
-    public void updateLimits(boolean useAllLayers, float expandFactor) {
+    public void updateLimits() {
         // Calculate the new limits and update the axes if needed
         if (!fixedXLim) {
-            xLim = calculateXLim(useAllLayers, expandFactor);
+            xLim = calculatePlotXLim();
             xAxis.setLim(xLim);
             topAxis.setLim(xLim);
         }
 
         if (!fixedYLim) {
-            yLim = calculateYLim(useAllLayers, expandFactor);
+            yLim = calculatePlotYLim();
             yAxis.setLim(yLim);
             rightAxis.setLim(yLim);
         }
@@ -456,22 +498,16 @@ public class GPlot implements PConstants {
     /**
      * Calculates the plot x limits
      * 
-     * @param useAllLayers
-     *            if true, all layers will be considered in the limit
-     *            calculation. If false, only the main layer will be used
-     * @param expandFactor
-     *            the relative factor to use to expand the plot x limits
-     * 
      * @return the x limits
      */
-    protected float[] calculateXLim(boolean useAllLayers, float expandFactor) {
+    protected float[] calculatePlotXLim() {
         // Find the limits for the main layer
-        float[] lim = obtainXLim(mainLayer.getPointsRef());
+        float[] lim = calculatePointsXLim(mainLayer.getPointsRef());
 
         // Include the other layers in the limit calculation if necessary
-        if (useAllLayers) {
+        if (includeAllLayers) {
             for (int i = 0; i < layerList.size(); i++) {
-                float[] newLim = obtainXLim(layerList.get(i).getPointsRef());
+                float[] newLim = calculatePointsXLim(layerList.get(i).getPointsRef());
 
                 if (newLim != null) {
                     if (lim != null) {
@@ -485,7 +521,24 @@ public class GPlot implements PConstants {
         }
 
         if (lim != null) {
-            lim = expandXLim(lim, expandFactor);
+            // Expand the axis limits a bit
+            float delta = (lim[0] == 0) ? 0.1f : 0.1f * lim[0];
+
+            if (xLog) {
+                if (lim[0] != lim[1]) {
+                    delta = PApplet.exp(expandAxisFactor * PApplet.log(lim[1] / lim[0]));
+                }
+
+                lim[0] = lim[0] / delta;
+                lim[1] = lim[1] * delta;
+            } else {
+                if (lim[0] != lim[1]) {
+                    delta = expandAxisFactor * (lim[1] - lim[0]);
+                }
+
+                lim[0] = lim[0] - delta;
+                lim[1] = lim[1] + delta;
+            }
         } else {
             if (xLog && (xLim[0] <= 0 || xLim[1] <= 0)) {
                 lim = new float[] { 0.1f, 10 };
@@ -505,22 +558,16 @@ public class GPlot implements PConstants {
     /**
      * Calculates the plot y limits
      * 
-     * @param useAllLayers
-     *            if true, all layers will be considered in the limit
-     *            calculation. If false, only the main layer will be used
-     * @param expandFactor
-     *            the relative factor to use to expand the plot y limits
-     * 
      * @return the y limits
      */
-    protected float[] calculateYLim(boolean useAllLayers, float expandFactor) {
+    protected float[] calculatePlotYLim() {
         // Find the limits for the main layer
-        float[] lim = obtainYLim(mainLayer.getPointsRef());
+        float[] lim = calculatePointsYLim(mainLayer.getPointsRef());
 
         // Include the other layers in the limit calculation if necessary
-        if (useAllLayers) {
+        if (includeAllLayers) {
             for (int i = 0; i < layerList.size(); i++) {
-                float[] newLim = obtainYLim(layerList.get(i).getPointsRef());
+                float[] newLim = calculatePointsYLim(layerList.get(i).getPointsRef());
 
                 if (newLim != null) {
                     if (lim != null) {
@@ -534,7 +581,24 @@ public class GPlot implements PConstants {
         }
 
         if (lim != null) {
-            lim = expandYLim(lim, expandFactor);
+            // Expand the axis limits a bit
+            float delta = (lim[0] == 0) ? 0.1f : 0.1f * lim[0];
+
+            if (yLog) {
+                if (lim[0] != lim[1]) {
+                    delta = PApplet.exp(expandAxisFactor * PApplet.log(lim[1] / lim[0]));
+                }
+
+                lim[0] = lim[0] / delta;
+                lim[1] = lim[1] * delta;
+            } else {
+                if (lim[0] != lim[1]) {
+                    delta = expandAxisFactor * (lim[1] - lim[0]);
+                }
+
+                lim[0] = lim[0] - delta;
+                lim[1] = lim[1] + delta;
+            }
         } else {
             if (yLog && (yLim[0] <= 0 || yLim[1] <= 0)) {
                 lim = new float[] { 0.1f, 10 };
@@ -552,14 +616,16 @@ public class GPlot implements PConstants {
     }
 
     /**
-     * Obtains the x limits of a given set of points
+     * Calculates the x limits of a given set of points, considering the plot
+     * properties (axis log scale, if the other axis limits are fixed, etc)
      * 
      * @param points
      *            the points for which we want to calculate the x limits
      * 
-     * @return the x limits
+     * @return the x limits. Null if none of the points satisfies the plot
+     *         properties
      */
-    protected float[] obtainXLim(GPointsArray points) {
+    public float[] calculatePointsXLim(GPointsArray points) {
         // Find the points limits
         float[] lim = new float[] { Float.MAX_VALUE, -Float.MAX_VALUE };
 
@@ -598,14 +664,16 @@ public class GPlot implements PConstants {
     }
 
     /**
-     * Obtains the y limits of a given set of points
+     * Calculates the y limits of a given set of points, considering the plot
+     * properties (axis log scale, if the other axis limits are fixed, etc)
      * 
      * @param points
-     *            the points for which we want to calculate the y limits
+     *            the points for which we want to calculate the y limSits
      * 
-     * @return the y limits
+     * @return the y limits. Null if none of the points satisfies the plot
+     *         properties
      */
-    protected float[] obtainYLim(GPointsArray points) {
+    public float[] calculatePointsYLim(GPointsArray points) {
         // Find the points limits
         float[] lim = new float[] { Float.MAX_VALUE, -Float.MAX_VALUE };
 
@@ -644,58 +712,6 @@ public class GPlot implements PConstants {
     }
 
     /**
-     * Expands the x limits by a given factor
-     * 
-     * @param lim
-     *            the x limits to expand
-     * @param factor
-     *            the relative factor to use to expand the x limits
-     * 
-     * @return the new expanded x limits
-     */
-    protected float[] expandXLim(float[] lim, float factor) {
-        float[] expandedLim = new float[2];
-
-        if (xLog) {
-            float delta = PApplet.exp(factor * PApplet.log(lim[1] / lim[0]));
-            expandedLim[0] = lim[0] / delta;
-            expandedLim[1] = lim[1] * delta;
-        } else {
-            float delta = factor * (lim[1] - lim[0]);
-            expandedLim[0] = lim[0] - delta;
-            expandedLim[1] = lim[1] + delta;
-        }
-
-        return expandedLim;
-    }
-
-    /**
-     * Expands the y limits by a given factor
-     * 
-     * @param lim
-     *            the y limits to expand
-     * @param factor
-     *            the relative factor to use to expand the y limits
-     * 
-     * @return the new expanded y limits
-     */
-    protected float[] expandYLim(float[] lim, float factor) {
-        float[] expandedLim = new float[2];
-
-        if (yLog) {
-            float delta = PApplet.exp(factor * PApplet.log(lim[1] / lim[0]));
-            expandedLim[0] = lim[0] / delta;
-            expandedLim[1] = lim[1] * delta;
-        } else {
-            float delta = factor * (lim[1] - lim[0]);
-            expandedLim[0] = lim[0] - delta;
-            expandedLim[1] = lim[1] + delta;
-        }
-
-        return expandedLim;
-    }
-
-    /**
      * Moves the horizontal axes limits by a given amount specified in pixel
      * units
      * 
@@ -721,19 +737,8 @@ public class GPlot implements PConstants {
         xAxis.moveLim(xLim);
         topAxis.moveLim(xLim);
 
-        // Update the vertical axes if needed
-        if (!fixedYLim) {
-            yLim = calculateYLim(includeAllLayers, expandAxisFactor);
-            yAxis.setLim(yLim);
-            rightAxis.setLim(yLim);
-        }
-
-        // Update the layers
-        mainLayer.setXYLim(xLim, yLim);
-
-        for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).setXYLim(xLim, yLim);
-        }
+        // Update the plot limits
+        updateLimits();
     }
 
     /**
@@ -761,50 +766,37 @@ public class GPlot implements PConstants {
         yAxis.moveLim(yLim);
         rightAxis.moveLim(yLim);
 
-        // Update the horizontal axes if needed
-        if (!fixedXLim) {
-            xLim = calculateXLim(includeAllLayers, expandAxisFactor);
-            xAxis.setLim(xLim);
-            topAxis.setLim(xLim);
-        }
-
-        // Update the layers
-        mainLayer.setXYLim(xLim, yLim);
-
-        for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).setXYLim(xLim, yLim);
-        }
+        // Update the plot limits
+        updateLimits();
     }
 
     /**
-     * Centers the plot coordinates on the specified screen position and zooms
-     * the limits range by a given factor
+     * Centers the plot coordinates on the specified (x, y) point and zooms the
+     * limits range by a given factor
      * 
      * @param factor
      *            the plot limits will be zoomed by this factor
-     * @param xScreen
-     *            x screen position in the parent Processing applet
-     * @param yScreen
-     *            y screen position in the parent Processing applet
+     * @param xValue
+     *            the x plot value
+     * @param yValue
+     *            the y plot value
      */
-    public void zoom(float factor, float xScreen, float yScreen) {
+    public void centerAndZoom(float factor, float xValue, float yValue) {
         // Calculate the new limits
-        float[] newCenter = getValueAt(xScreen, yScreen);
-
         if (xLog) {
             float deltaLim = PApplet.exp(PApplet.log(xLim[1] / xLim[0]) / (2 * factor));
-            xLim = new float[] { newCenter[0] / deltaLim, newCenter[0] * deltaLim };
+            xLim = new float[] { xValue / deltaLim, xValue * deltaLim };
         } else {
             float deltaLim = (xLim[1] - xLim[0]) / (2 * factor);
-            xLim = new float[] { newCenter[0] - deltaLim, newCenter[0] + deltaLim };
+            xLim = new float[] { xValue - deltaLim, xValue + deltaLim };
         }
 
         if (yLog) {
             float deltaLim = PApplet.exp(PApplet.log(yLim[1] / yLim[0]) / (2 * factor));
-            yLim = new float[] { newCenter[1] / deltaLim, newCenter[1] * deltaLim };
+            yLim = new float[] { yValue / deltaLim, yValue * deltaLim };
         } else {
             float deltaLim = (yLim[1] - yLim[0]) / (2 * factor);
-            yLim = new float[] { newCenter[1] - deltaLim, newCenter[1] + deltaLim };
+            yLim = new float[] { yValue - deltaLim, yValue + deltaLim };
         }
 
         // Fix the limits
@@ -817,12 +809,96 @@ public class GPlot implements PConstants {
         yAxis.setLim(yLim);
         rightAxis.setLim(yLim);
 
-        // Update the layers
-        mainLayer.setXYLim(xLim, yLim);
+        // Update the plot limits (the layers, because the limits are fixed)
+        updateLimits();
+    }
 
-        for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).setXYLim(xLim, yLim);
+    /**
+     * Zooms the limits range by a given factor
+     * 
+     * @param factor
+     *            the plot limits will be zoomed by this factor
+     */
+    public void zoom(float factor) {
+        float[] center = mainLayer.plotToValue(dim[0] / 2, -dim[1] / 2);
+
+        if (xLog) {
+            float deltaLim = PApplet.exp(PApplet.log(xLim[1] / xLim[0]) / (2 * factor));
+            xLim = new float[] { center[0] / deltaLim, center[0] * deltaLim };
+        } else {
+            float deltaLim = (xLim[1] - xLim[0]) / (2 * factor);
+            xLim = new float[] { center[0] - deltaLim, center[0] + deltaLim };
         }
+
+        if (yLog) {
+            float deltaLim = PApplet.exp(PApplet.log(yLim[1] / yLim[0]) / (2 * factor));
+            yLim = new float[] { center[1] / deltaLim, center[1] * deltaLim };
+        } else {
+            float deltaLim = (yLim[1] - yLim[0]) / (2 * factor);
+            yLim = new float[] { center[1] - deltaLim, center[1] + deltaLim };
+        }
+
+        // Fix the limits
+        fixedXLim = true;
+        fixedYLim = true;
+
+        // Update the horizontal and vertical axes
+        xAxis.setLim(xLim);
+        topAxis.setLim(xLim);
+        yAxis.setLim(yLim);
+        rightAxis.setLim(yLim);
+
+        // Update the plot limits (the layers, because the limits are fixed)
+        updateLimits();
+    }
+
+    /**
+     * Zooms the limits range by a given factor keeping the same value at the
+     * specified screen position
+     * 
+     * @param factor
+     *            the plot limits will be zoomed by this factor
+     * @param xScreen
+     *            x screen position in the parent Processing applet
+     * @param yScreen
+     *            y screen position in the parent Processing applet
+     */
+    public void zoom(float factor, float xScreen, float yScreen) {
+        float[] plotPos = getPlotPosAt(xScreen, yScreen);
+        float[] value = mainLayer.plotToValue(plotPos[0], plotPos[1]);
+
+        if (xLog) {
+            float deltaLim = PApplet.exp(PApplet.log(xLim[1] / xLim[0]) / (2 * factor));
+            float offset = PApplet.exp(-(PApplet.log(xLim[1] / xLim[0]) / factor) * (plotPos[0] / dim[0] - 0.5f));
+            xLim = new float[] { (value[0] / deltaLim) * offset, (value[0] * deltaLim) * offset };
+        } else {
+            float deltaLim = (xLim[1] - xLim[0]) / (2 * factor);
+            float offset = -2 * deltaLim * (plotPos[0] / dim[0] - 0.5f);
+            xLim = new float[] { value[0] - deltaLim + offset, value[0] + deltaLim + offset };
+        }
+
+        if (yLog) {
+            float deltaLim = PApplet.exp(PApplet.log(yLim[1] / yLim[0]) / (2 * factor));
+            float offset = PApplet.exp(-(PApplet.log(yLim[1] / yLim[0]) / factor) * (-plotPos[1] / dim[1] - 0.5f));
+            yLim = new float[] { (value[1] / deltaLim) * offset, (value[1] * deltaLim) * offset };
+        } else {
+            float deltaLim = (yLim[1] - yLim[0]) / (2 * factor);
+            float offset = -2 * deltaLim * (-plotPos[1] / dim[1] - 0.5f);
+            yLim = new float[] { value[1] - deltaLim + offset, value[1] + deltaLim + offset };
+        }
+
+        // Fix the limits
+        fixedXLim = true;
+        fixedYLim = true;
+
+        // Update the horizontal and vertical axes
+        xAxis.setLim(xLim);
+        topAxis.setLim(xLim);
+        yAxis.setLim(yLim);
+        rightAxis.setLim(yLim);
+
+        // Update the plot limits (the layers, because the limits are fixed)
+        updateLimits();
     }
 
     /**
@@ -865,12 +941,28 @@ public class GPlot implements PConstants {
         yAxis.moveLim(yLim);
         rightAxis.moveLim(yLim);
 
-        // Update the layers
-        mainLayer.setXYLim(xLim, yLim);
+        // Update the plot limits (the layers, because the limits are fixed)
+        updateLimits();
+    }
 
-        for (int i = 0; i < layerList.size(); i++) {
-            layerList.get(i).setXYLim(xLim, yLim);
-        }
+    /**
+     * Shifts the plot coordinates in a way that after that the given plot value
+     * will be at the specified screen position
+     * 
+     * @param xValue
+     *            the x plot value
+     * @param yValue
+     *            the y plot value
+     * @param xScreen
+     *            x screen position in the parent Processing applet
+     * @param yScreen
+     *            y screen position in the parent Processing applet
+     */
+    public void align(float xValue, float yValue, float xScreen, float yScreen) {
+        float[] valuePlotPos = mainLayer.valueToPlot(xValue, yValue);
+        float[] newPlotPos = getPlotPosAt(xScreen, yScreen);
+
+        shiftPlotPos(valuePlotPos, newPlotPos);
     }
 
     /**
@@ -878,17 +970,14 @@ public class GPlot implements PConstants {
      * will be at the specified screen position
      * 
      * @param value
-     *            the x and y plot value
+     *            the x and y plot values
      * @param xScreen
      *            x screen position in the parent Processing applet
      * @param yScreen
      *            y screen position in the parent Processing applet
      */
     public void align(float[] value, float xScreen, float yScreen) {
-        float[] valuePlotPos = mainLayer.valueToPlot(value[0], value[1]);
-        float[] newPlotPos = getPlotPosAt(xScreen, yScreen);
-
-        shiftPlotPos(valuePlotPos, newPlotPos);
+        align(value[0], value[1], xScreen, yScreen);
     }
 
     /**
@@ -1258,12 +1347,7 @@ public class GPlot implements PConstants {
      */
     public void drawLabels() {
         if (labelingIsActive && mousePos != null) {
-            float[] plotPos = getPlotPosAt(mousePos[0], mousePos[1]);
-            mainLayer.drawLabelAtPlotPos(plotPos[0], plotPos[1]);
-
-            for (int i = 0; i < layerList.size(); i++) {
-                layerList.get(i).drawLabelAtPlotPos(plotPos[0], plotPos[1]);
-            }
+            drawLabelsAt(mousePos[0], mousePos[1]);
         }
     }
 
@@ -1467,6 +1551,22 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets the plot margins
+     * 
+     * @param bottomMargin
+     *            the new plot bottom margin
+     * @param leftMargin
+     *            the new plot left margin
+     * @param topMargin
+     *            the new plot top margin
+     * @param rightMargin
+     *            the new plot right margin
+     */
+    public void setMar(float bottomMargin, float leftMargin, float topMargin, float rightMargin) {
+        setMar(new float[] { bottomMargin, leftMargin, topMargin, rightMargin });
+    }
+
+    /**
      * Sets the plot box dimensions
      * 
      * @param newDim
@@ -1530,20 +1630,22 @@ public class GPlot implements PConstants {
                 xAxis.setLim(xLim);
                 topAxis.setLim(xLim);
 
-                if (!fixedYLim) {
-                    yLim = calculateYLim(includeAllLayers, expandAxisFactor);
-                    yAxis.setLim(yLim);
-                    rightAxis.setLim(yLim);
-                }
-
-                // Update the layers
-                mainLayer.setXYLim(xLim, yLim);
-
-                for (int i = 0; i < layerList.size(); i++) {
-                    layerList.get(i).setXYLim(xLim, yLim);
-                }
+                // Update the plot limits
+                updateLimits();
             }
         }
+    }
+
+    /**
+     * Sets the horizontal axes limits
+     * 
+     * @param lowerLim
+     *            the new axes lower limit
+     * @param upperLim
+     *            the new axes upper limit
+     */
+    public void setXLim(float lowerLim, float upperLim) {
+        setXLim(new float[] { lowerLim, upperLim });
     }
 
     /**
@@ -1568,20 +1670,22 @@ public class GPlot implements PConstants {
                 yAxis.setLim(yLim);
                 rightAxis.setLim(yLim);
 
-                if (!fixedXLim) {
-                    xLim = calculateXLim(includeAllLayers, expandAxisFactor);
-                    xAxis.setLim(xLim);
-                    topAxis.setLim(xLim);
-                }
-
-                // Update the layers
-                mainLayer.setXYLim(xLim, yLim);
-
-                for (int i = 0; i < layerList.size(); i++) {
-                    layerList.get(i).setXYLim(xLim, yLim);
-                }
+                // Update the plot limits
+                updateLimits();
             }
         }
+    }
+
+    /**
+     * Sets the vertical axes limits
+     * 
+     * @param lowerLim
+     *            the new axes lower limit
+     * @param upperLim
+     *            the new axes upper limit
+     */
+    public void setYLim(float lowerLim, float upperLim) {
+        setYLim(new float[] { lowerLim, upperLim });
     }
 
     /**
@@ -1592,6 +1696,9 @@ public class GPlot implements PConstants {
      */
     public void setFixedXLim(boolean newFixedXLim) {
         fixedXLim = newFixedXLim;
+
+        // Update the plot limits
+        updateLimits();
     }
 
     /**
@@ -1602,6 +1709,9 @@ public class GPlot implements PConstants {
      */
     public void setFixedYLim(boolean newFixedYLim) {
         fixedYLim = newFixedYLim;
+
+        // Update the plot limits
+        updateLimits();
     }
 
     /**
@@ -1646,11 +1756,11 @@ public class GPlot implements PConstants {
 
             // Calculate the new limits if needed
             if (!fixedXLim) {
-                xLim = calculateXLim(includeAllLayers, expandAxisFactor);
+                xLim = calculatePlotXLim();
             }
 
             if (!fixedYLim) {
-                yLim = calculateYLim(includeAllLayers, expandAxisFactor);
+                yLim = calculatePlotYLim();
             }
 
             // Update the axes
@@ -1713,6 +1823,38 @@ public class GPlot implements PConstants {
             for (int i = 0; i < layerList.size(); i++) {
                 layerList.get(i).setYLim(yLim);
             }
+        }
+    }
+
+    /**
+     * Sets if all the plot layers should be considered in the axes limits
+     * calculation
+     * 
+     * @param newIncludeAllLayers
+     *            true if all layers should be considered and not only the main
+     *            layer
+     */
+    public void setIncludeAllLayers(boolean newIncludeAllLayers) {
+        if (newIncludeAllLayers != includeAllLayers) {
+            includeAllLayers = newIncludeAllLayers;
+
+            // Update the plot limits
+            updateLimits();
+        }
+    }
+
+    /**
+     * Sets the factor that is used to expand the axes limits
+     * 
+     * @param newExpandAxisFactor
+     *            the new expansion factor
+     */
+    public void setExpandAxisFactor(float newExpandAxisFactor) {
+        if (newExpandAxisFactor >= 0) {
+            expandAxisFactor = newExpandAxisFactor;
+
+            // Update the plot limits
+            updateLimits();
         }
     }
 
@@ -1791,8 +1933,8 @@ public class GPlot implements PConstants {
             // Add the points to the main layer
             mainLayer.setPoints(points);
 
-            // Calculate the new limits and update the axes if needed
-            updateLimits(includeAllLayers, expandAxisFactor);
+            // Update the plot limits
+            updateLimits();
         }
     }
 
@@ -2094,6 +2236,24 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Returns true if the horizontal axes limits are inverted
+     * 
+     * @return true, if the horizontal axes limits are inverted
+     */
+    public boolean getInvertedXScale() {
+        return invertedXScale;
+    }
+
+    /**
+     * Returns true if the vertical axes limits are inverted
+     * 
+     * @return true, if the vertical axes limits are inverted
+     */
+    public boolean getInvertedYScale() {
+        return invertedYScale;
+    }
+
+    /**
      * Returns the plot main layer
      * 
      * @return the plot main layer
@@ -2111,21 +2271,24 @@ public class GPlot implements PConstants {
      * @return the layer with the specified id
      */
     public GLayer getLayer(String id) {
-        int index = -1;
+        GLayer l = null;
 
-        for (int i = 0; i < layerList.size(); i++) {
-            if (layerList.get(i).isId(id)) {
-                index = i;
-                break;
+        if (mainLayer.isId(id)) {
+            l = mainLayer;
+        } else {
+            for (int i = 0; i < layerList.size(); i++) {
+                if (layerList.get(i).isId(id)) {
+                    l = layerList.get(i);
+                    break;
+                }
             }
         }
 
-        if (index >= 0) {
-            return layerList.get(index);
-        } else {
+        if (l == null) {
             PApplet.println("Couldn't find a layer in the plot with id = " + id);
-            return null;
         }
+
+        return l;
     }
 
     /**
@@ -2201,14 +2364,6 @@ public class GPlot implements PConstants {
     }
 
     /**
-     * Activates the option to zoom with the mouse using the LEFT and RIGHT
-     * buttons
-     */
-    public void activateZooming() {
-        activateZooming(1.3f, LEFT, RIGHT, NONE, NONE);
-    }
-
-    /**
      * Activates the option to zoom with the mouse using the specified buttons
      * and the specified key modifiers
      * 
@@ -2245,18 +2400,22 @@ public class GPlot implements PConstants {
         }
 
         if (increaseKeyModifier == SHIFTMOD || increaseKeyModifier == CTRLMOD || increaseKeyModifier == METAMOD
-                || increaseKeyModifier == ALTMOD) {
+                || increaseKeyModifier == ALTMOD || increaseKeyModifier == NONE) {
             increaseZoomKeyModifier = increaseKeyModifier;
-        } else {
-            increaseZoomKeyModifier = NONE;
         }
 
         if (decreaseKeyModifier == SHIFTMOD || decreaseKeyModifier == CTRLMOD || decreaseKeyModifier == METAMOD
-                || decreaseKeyModifier == ALTMOD) {
+                || decreaseKeyModifier == ALTMOD || decreaseKeyModifier == NONE) {
             decreaseZoomKeyModifier = decreaseKeyModifier;
-        } else {
-            decreaseZoomKeyModifier = NONE;
         }
+    }
+
+    /**
+     * Activates the option to zoom with the mouse using the LEFT and RIGHT
+     * buttons
+     */
+    public void activateZooming() {
+        activateZooming(1.3f, LEFT, RIGHT, NONE, NONE);
     }
 
     /**
@@ -2264,14 +2423,6 @@ public class GPlot implements PConstants {
      */
     public void deactivateZooming() {
         zoomingIsActive = false;
-    }
-
-    /**
-     * Activates the option to center the plot with the mouse using the LEFT
-     * button
-     */
-    public void activateCentering() {
-        activateCentering(LEFT, NONE);
     }
 
     /**
@@ -2292,11 +2443,17 @@ public class GPlot implements PConstants {
             centeringButton = button;
         }
 
-        if (keyModifier == SHIFTMOD || keyModifier == CTRLMOD || keyModifier == METAMOD || keyModifier == ALTMOD) {
+        if (keyModifier == SHIFTMOD || keyModifier == CTRLMOD || keyModifier == METAMOD || keyModifier == ALTMOD || keyModifier == NONE) {
             centeringKeyModifier = keyModifier;
-        } else {
-            centeringKeyModifier = NONE;
         }
+    }
+
+    /**
+     * Activates the option to center the plot with the mouse using the LEFT
+     * button
+     */
+    public void activateCentering() {
+        activateCentering(LEFT, NONE);
     }
 
     /**
@@ -2304,13 +2461,6 @@ public class GPlot implements PConstants {
      */
     public void deactivateCentering() {
         centeringIsActive = false;
-    }
-
-    /**
-     * Activates the option to pan the plot with the mouse using the LEFT button
-     */
-    public void activatePanning() {
-        activatePanning(LEFT, NONE);
     }
 
     /**
@@ -2331,11 +2481,16 @@ public class GPlot implements PConstants {
             panningButton = button;
         }
 
-        if (keyModifier == SHIFTMOD || keyModifier == CTRLMOD || keyModifier == METAMOD || keyModifier == ALTMOD) {
+        if (keyModifier == SHIFTMOD || keyModifier == CTRLMOD || keyModifier == METAMOD || keyModifier == ALTMOD || keyModifier == NONE) {
             panningKeyModifier = keyModifier;
-        } else {
-            panningKeyModifier = NONE;
         }
+    }
+
+    /**
+     * Activates the option to pan the plot with the mouse using the LEFT button
+     */
+    public void activatePanning() {
+        activatePanning(LEFT, NONE);
     }
 
     /**
@@ -2343,14 +2498,6 @@ public class GPlot implements PConstants {
      */
     public void deactivatePanning() {
         panningIsActive = false;
-    }
-
-    /**
-     * Activates the option to draw the labels of the points with the mouse
-     * using the LEFT button
-     */
-    public void activatePointLabels() {
-        activatePointLabels(LEFT, NONE);
     }
 
     /**
@@ -2371,11 +2518,17 @@ public class GPlot implements PConstants {
             labelingButton = button;
         }
 
-        if (keyModifier == SHIFTMOD || keyModifier == CTRLMOD || keyModifier == METAMOD || keyModifier == ALTMOD) {
+        if (keyModifier == SHIFTMOD || keyModifier == CTRLMOD || keyModifier == METAMOD || keyModifier == ALTMOD || keyModifier == NONE) {
             labelingKeyModifier = keyModifier;
-        } else {
-            labelingKeyModifier = NONE;
         }
+    }
+
+    /**
+     * Activates the option to draw the labels of the points with the mouse
+     * using the LEFT button
+     */
+    public void activatePointLabels() {
+        activatePointLabels(LEFT, NONE);
     }
 
     /**
@@ -2386,49 +2539,106 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Activates the option to return to the value of the axes limits previous
+     * to any mouse interaction, using the specified button and the specified
+     * key modifier
+     * 
+     * @param button
+     *            the mouse button to use. It could be LEFT, RIGHT or CENTER
+     * @param keyModifier
+     *            the key modifier to use in conjunction with the mouse button.
+     *            It could be GPlot.SHIFTMOD, GPlot.CTRLMOD, GPlot.METAMOD,
+     *            GPlot.ALTMOD, or GPlot.NONE if no key is need
+     */
+    public void activateReset(int button, int keyModifier) {
+        resetIsActive = true;
+        xLimSave = null;
+        yLimSave = null;
+
+        if (button == LEFT || button == RIGHT || button == CENTER) {
+            resetButton = button;
+        }
+
+        if (keyModifier == SHIFTMOD || keyModifier == CTRLMOD || keyModifier == METAMOD || keyModifier == ALTMOD || keyModifier == NONE) {
+            resetKeyModifier = keyModifier;
+        }
+    }
+
+    /**
+     * Activates the option to return to the value of the axes limits previous
+     * to any mouse interaction, using the RIGHT button + the CTRL key modifier
+     */
+    public void activateReset() {
+        activateReset(RIGHT, CTRLMOD);
+    }
+
+    /**
+     * Deactivates the option to return to the value of the axes limits previous
+     * to any mouse interaction using the mouse
+     */
+    public void deactivateReset() {
+        resetIsActive = false;
+        xLimSave = null;
+        yLimSave = null;
+    }
+
+    /**
      * Mouse events (zooming, centering, panning, labeling)
      * 
      * @param event
      *            the mouse event detected by the processing applet
      */
     public void mouseEvent(MouseEvent event) {
-        int button = event.getButton();
-        int modifiers = event.getModifiers();
         int action = event.getAction();
+        int button = (action == MouseEvent.WHEEL) ? CENTER : event.getButton();
+        int modifiers = event.getModifiers();
+        float xMouse = event.getX();
+        float yMouse = event.getY();
+        int wheelCounter = (action == MouseEvent.WHEEL) ? event.getCount() : 0;
 
-        if (zoomingIsActive) {
+        if (zoomingIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
             if (button == increaseZoomButton && (increaseZoomKeyModifier == NONE || (modifiers & increaseZoomKeyModifier) != 0)) {
-                if (action == MouseEvent.CLICK) {
-                    float xMouse = event.getX();
-                    float yMouse = event.getY();
+                if (isOverBox(xMouse, yMouse)) {
+                    // Save the axes limits if it's the first mouse
+                    // modification after the last reset
+                    if (resetIsActive && (xLimSave == null || yLimSave == null)) {
+                        xLimSave = xLim.clone();
+                        yLimSave = yLim.clone();
+                    }
 
-                    if (isOverBox(xMouse, yMouse)) {
+                    if (wheelCounter <= 0) {
                         zoom(zoomFactor, xMouse, yMouse);
                     }
                 }
             }
 
             if (button == decreaseZoomButton && (decreaseZoomKeyModifier == NONE || (modifiers & decreaseZoomKeyModifier) != 0)) {
-                if (action == MouseEvent.CLICK) {
-                    float xMouse = event.getX();
-                    float yMouse = event.getY();
+                if (isOverBox(xMouse, yMouse)) {
+                    // Save the axes limits if it's the first mouse
+                    // modification after the last reset
+                    if (resetIsActive && (xLimSave == null || yLimSave == null)) {
+                        xLimSave = xLim.clone();
+                        yLimSave = yLim.clone();
+                    }
 
-                    if (isOverBox(xMouse, yMouse)) {
+                    if (wheelCounter >= 0) {
                         zoom(1 / zoomFactor, xMouse, yMouse);
                     }
                 }
             }
         }
 
-        if (centeringIsActive) {
+        if (centeringIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
             if (button == centeringButton && (centeringKeyModifier == NONE || (modifiers & centeringKeyModifier) != 0)) {
-                if (action == MouseEvent.CLICK) {
-                    float xMouse = event.getX();
-                    float yMouse = event.getY();
-
-                    if (isOverBox(xMouse, yMouse)) {
-                        center(xMouse, yMouse);
+                if (isOverBox(xMouse, yMouse)) {
+                    // Save the axes limits if it's the first mouse
+                    // modification after the last reset
+                    if (resetIsActive && (xLimSave == null || yLimSave == null)) {
+                        xLimSave = xLim.clone();
+                        yLimSave = yLim.clone();
                     }
+
+                    center(xMouse, yMouse);
                 }
             }
         }
@@ -2436,10 +2646,14 @@ public class GPlot implements PConstants {
         if (panningIsActive) {
             if (button == panningButton && (panningKeyModifier == NONE || (modifiers & panningKeyModifier) != 0)) {
                 if (action == MouseEvent.DRAG) {
-                    float xMouse = event.getX();
-                    float yMouse = event.getY();
-
                     if (panningReferencePoint != null) {
+                        // Save the axes limits if it's the first mouse
+                        // modification after the last reset
+                        if (resetIsActive && (xLimSave == null || yLimSave == null)) {
+                            xLimSave = xLim.clone();
+                            yLimSave = yLim.clone();
+                        }
+
                         align(panningReferencePoint, xMouse, yMouse);
                     } else if (isOverBox(xMouse, yMouse)) {
                         panningReferencePoint = getValueAt(xMouse, yMouse);
@@ -2456,6 +2670,19 @@ public class GPlot implements PConstants {
                     mousePos = new float[] { event.getX(), event.getY() };
                 } else {
                     mousePos = null;
+                }
+            }
+        }
+
+        if (resetIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
+            if (button == resetButton && (resetKeyModifier == NONE || (modifiers & resetKeyModifier) != 0)) {
+                if (isOverBox(xMouse, yMouse)) {
+                    if (xLimSave != null && yLimSave != null) {
+                        setXLim(xLimSave);
+                        setYLim(yLimSave);
+                        xLimSave = null;
+                        yLimSave = null;
+                    }
                 }
             }
         }

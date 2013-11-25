@@ -35,9 +35,9 @@ public void setup(){
 
   // Setup for the first plot
   plot1 = new GPlot(this);
-  plot1.setPos(new float[] {0, 0});
-  plot1.setXLim(new float[] {1, 100});
-  plot1.setYLim(new float[] {0.1, 3});
+  plot1.setPos(0, 0);
+  plot1.setXLim(1, 100);
+  plot1.setYLim(0.1, 3);
   plot1.getXAxis().getAxisLabel().setText("Time");
   plot1.getYAxis().getAxisLabel().setText("noise (0.1 time)");
   plot1.getTitle().setText("Multiple layers plot");
@@ -55,8 +55,8 @@ public void setup(){
   
   // Setup for the second plot 
   plot2 = new GPlot(this);
-  plot2.setPos(new float[] {460, 0});
-  plot2.setDim(new float[] {250, 250});
+  plot2.setPos(460, 0);
+  plot2.setDim(250, 250);
   plot2.getXAxis().getAxisLabel().setText("mouseX");
   plot2.getYAxis().getAxisLabel().setText("-mouseY");
   plot2.getTitle().setText("Mouse position");
@@ -85,10 +85,10 @@ public void setup(){
   
   // Setup for the third plot 
   plot3 = new GPlot(this);
-  plot3.setPos(new float[] {0, 300});
-  plot3.setDim(new float[] {250, 250});
-  plot3.setYLim(new float[] {-0.02, 0.45});
-  plot3.setXLim(new float[] {5, -5});
+  plot3.setPos(0, 300);
+  plot3.setDim(250, 250);
+  plot3.setYLim(-0.02, 0.45);
+  plot3.setXLim(5, -5);
   plot3.getYAxis().getAxisLabel().setText("Relative probability");
   plot3.getYAxis().getAxisLabel().setTextAlignment(RIGHT);
   plot3.getYAxis().getAxisLabel().setRelativePos(1);
@@ -123,8 +123,8 @@ public void setup(){
   
   // Setup for the fourth plot 
   plot4 = new GPlot(this);
-  plot4.setPos(new float[] {370, 350});
-  plot4.setYLim(new float[] {-0.005, 0.1});
+  plot4.setPos(370, 350);
+  plot4.setYLim(-0.005, 0.1);
   plot4.getXAxis().getAxisLabel().setText("x variable");
   plot4.getYAxis().getAxisLabel().setText("Relative probability");
   plot4.getTitle().setText("Uniform distribution (" + str(uniformCounter) + " points)");
