@@ -1803,13 +1803,13 @@ public class GPlot implements PConstants {
      * Sets if all the plot layers should be considered in the axes limits
      * calculation
      * 
-     * @param newIncludeAllLayers
+     * @param includeAllLayers
      *            true if all layers should be considered and not only the main
      *            layer
      */
-    public void setIncludeAllLayers(boolean newIncludeAllLayers) {
-        if (newIncludeAllLayers != includeAllLayersInLim) {
-            includeAllLayersInLim = newIncludeAllLayers;
+    public void setIncludeAllLayersInLim(boolean includeAllLayers) {
+        if (includeAllLayers != includeAllLayersInLim) {
+            includeAllLayersInLim = includeAllLayers;
 
             // Update the plot limits
             updateLimits();
@@ -1819,12 +1819,12 @@ public class GPlot implements PConstants {
     /**
      * Sets the factor that is used to expand the axes limits
      * 
-     * @param newExpandAxisFactor
+     * @param expandFactor
      *            the new expansion factor
      */
-    public void setExpandAxisFactor(float newExpandAxisFactor) {
-        if (newExpandAxisFactor >= 0 && newExpandAxisFactor != expandLimFactor) {
-            expandLimFactor = newExpandAxisFactor;
+    public void setExpandLimFactor(float expandFactor) {
+        if (expandFactor >= 0 && expandFactor != expandLimFactor) {
+            expandLimFactor = expandFactor;
 
             // Update the plot limits
             updateLimits();
