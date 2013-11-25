@@ -16,6 +16,8 @@ void setup(){
   // Create a new plot and set its position on the screen
   GPlot plot = new GPlot(this);
   plot.setPos(25, 25);
+  // or all in one go
+  // GPlot plot = new GPlot(this, 25, 25);
   
   // Set the plot title and the axis labels
   plot.setPoints(points);

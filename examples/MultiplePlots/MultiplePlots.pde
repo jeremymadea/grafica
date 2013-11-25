@@ -27,11 +27,11 @@ public void setup(){
   
   // Create a polygon to display inside the plot  
   polygonPoints = new GPointsArray(5);
-  polygonPoints.add(new GPoint(2, 0.15));
-  polygonPoints.add(new GPoint(6, 0.12));
-  polygonPoints.add(new GPoint(15, 0.3));
-  polygonPoints.add(new GPoint(8, 0.6));
-  polygonPoints.add(new GPoint(1.5, 0.5));
+  polygonPoints.add(2, 0.15);
+  polygonPoints.add(6, 0.12);
+  polygonPoints.add(15, 0.3);
+  polygonPoints.add(8, 0.6);
+  polygonPoints.add(1.5, 0.5);
 
   // Setup for the first plot
   plot1 = new GPlot(this);
@@ -135,9 +135,10 @@ public void setup(){
   
   // Setup the mouse actions
   plot1.activatePanning();
+  plot1.activateZooming(1.2, CENTER, CENTER);
   plot1.activatePointLabels();
-  plot2.activateZooming();
-  plot3.activateCentering();
+  plot2.activateZooming(1.5);
+  plot3.activateCentering(LEFT, GPlot.CTRLMOD);
   plot4.activateZooming();
 
   // Load some shapes to use later in the plots

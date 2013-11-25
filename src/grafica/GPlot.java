@@ -57,8 +57,8 @@ public class GPlot implements PConstants {
     protected boolean yLog;
     protected boolean invertedXScale;
     protected boolean invertedYScale;
-    protected boolean includeAllLayers;
-    protected float expandAxisFactor;
+    protected boolean includeAllLayersInLim;
+    protected float expandLimFactor;
 
     // Format properties
     protected int bgColor;
@@ -111,8 +111,8 @@ public class GPlot implements PConstants {
     protected boolean resetIsActive;
     protected int resetButton;
     protected int resetKeyModifier;
-    protected float[] xLimSave;
-    protected float[] yLimSave;
+    protected float[] xLimReset;
+    protected float[] yLimReset;
 
     /**
      * GPlot constructor
@@ -135,8 +135,8 @@ public class GPlot implements PConstants {
         yLog = false;
         invertedXScale = false;
         invertedYScale = false;
-        includeAllLayers = true;
-        expandAxisFactor = 0.1f;
+        includeAllLayersInLim = true;
+        expandLimFactor = 0.1f;
 
         bgColor = this.parent.color(255);
         boxBgColor = this.parent.color(245);
@@ -176,8 +176,8 @@ public class GPlot implements PConstants {
         resetIsActive = false;
         resetButton = RIGHT;
         resetKeyModifier = CTRLMOD;
-        xLimSave = null;
-        yLimSave = null;
+        xLimReset = null;
+        yLimReset = null;
     }
 
     /**
@@ -245,7 +245,7 @@ public class GPlot implements PConstants {
                 layerList.add(newLayer);
 
                 // Calculate and update the new plot limits if necessary
-                if (includeAllLayers) {
+                if (includeAllLayersInLim) {
                     updateLimits();
                 }
             } else {
@@ -284,7 +284,7 @@ public class GPlot implements PConstants {
             layerList.add(newLayer);
 
             // Calculate and update the new plot limits if necessary
-            if (includeAllLayers) {
+            if (includeAllLayersInLim) {
                 updateLimits();
             }
         } else {
@@ -313,7 +313,7 @@ public class GPlot implements PConstants {
             layerList.remove(index);
 
             // Calculate and update the new plot limits if necessary
-            if (includeAllLayers) {
+            if (includeAllLayersInLim) {
                 updateLimits();
             }
         } else {
@@ -505,7 +505,7 @@ public class GPlot implements PConstants {
         float[] lim = calculatePointsXLim(mainLayer.getPointsRef());
 
         // Include the other layers in the limit calculation if necessary
-        if (includeAllLayers) {
+        if (includeAllLayersInLim) {
             for (int i = 0; i < layerList.size(); i++) {
                 float[] newLim = calculatePointsXLim(layerList.get(i).getPointsRef());
 
@@ -526,14 +526,14 @@ public class GPlot implements PConstants {
 
             if (xLog) {
                 if (lim[0] != lim[1]) {
-                    delta = PApplet.exp(expandAxisFactor * PApplet.log(lim[1] / lim[0]));
+                    delta = PApplet.exp(expandLimFactor * PApplet.log(lim[1] / lim[0]));
                 }
 
                 lim[0] = lim[0] / delta;
                 lim[1] = lim[1] * delta;
             } else {
                 if (lim[0] != lim[1]) {
-                    delta = expandAxisFactor * (lim[1] - lim[0]);
+                    delta = expandLimFactor * (lim[1] - lim[0]);
                 }
 
                 lim[0] = lim[0] - delta;
@@ -565,7 +565,7 @@ public class GPlot implements PConstants {
         float[] lim = calculatePointsYLim(mainLayer.getPointsRef());
 
         // Include the other layers in the limit calculation if necessary
-        if (includeAllLayers) {
+        if (includeAllLayersInLim) {
             for (int i = 0; i < layerList.size(); i++) {
                 float[] newLim = calculatePointsYLim(layerList.get(i).getPointsRef());
 
@@ -586,14 +586,14 @@ public class GPlot implements PConstants {
 
             if (yLog) {
                 if (lim[0] != lim[1]) {
-                    delta = PApplet.exp(expandAxisFactor * PApplet.log(lim[1] / lim[0]));
+                    delta = PApplet.exp(expandLimFactor * PApplet.log(lim[1] / lim[0]));
                 }
 
                 lim[0] = lim[0] / delta;
                 lim[1] = lim[1] * delta;
             } else {
                 if (lim[0] != lim[1]) {
-                    delta = expandAxisFactor * (lim[1] - lim[0]);
+                    delta = expandLimFactor * (lim[1] - lim[0]);
                 }
 
                 lim[0] = lim[0] - delta;
@@ -820,41 +820,14 @@ public class GPlot implements PConstants {
      *            the plot limits will be zoomed by this factor
      */
     public void zoom(float factor) {
-        float[] center = mainLayer.plotToValue(dim[0] / 2, -dim[1] / 2);
+        float[] centerValue = mainLayer.plotToValue(dim[0] / 2, -dim[1] / 2);
 
-        if (xLog) {
-            float deltaLim = PApplet.exp(PApplet.log(xLim[1] / xLim[0]) / (2 * factor));
-            xLim = new float[] { center[0] / deltaLim, center[0] * deltaLim };
-        } else {
-            float deltaLim = (xLim[1] - xLim[0]) / (2 * factor);
-            xLim = new float[] { center[0] - deltaLim, center[0] + deltaLim };
-        }
-
-        if (yLog) {
-            float deltaLim = PApplet.exp(PApplet.log(yLim[1] / yLim[0]) / (2 * factor));
-            yLim = new float[] { center[1] / deltaLim, center[1] * deltaLim };
-        } else {
-            float deltaLim = (yLim[1] - yLim[0]) / (2 * factor);
-            yLim = new float[] { center[1] - deltaLim, center[1] + deltaLim };
-        }
-
-        // Fix the limits
-        fixedXLim = true;
-        fixedYLim = true;
-
-        // Update the horizontal and vertical axes
-        xAxis.setLim(xLim);
-        topAxis.setLim(xLim);
-        yAxis.setLim(yLim);
-        rightAxis.setLim(yLim);
-
-        // Update the plot limits (the layers, because the limits are fixed)
-        updateLimits();
+        centerAndZoom(factor, centerValue[0], centerValue[1]);
     }
 
     /**
-     * Zooms the limits range by a given factor keeping the same value at the
-     * specified screen position
+     * Zooms the limits range by a given factor keeping the same plot value at
+     * the specified screen position
      * 
      * @param factor
      *            the plot limits will be zoomed by this factor
@@ -869,22 +842,22 @@ public class GPlot implements PConstants {
 
         if (xLog) {
             float deltaLim = PApplet.exp(PApplet.log(xLim[1] / xLim[0]) / (2 * factor));
-            float offset = PApplet.exp(-(PApplet.log(xLim[1] / xLim[0]) / factor) * (plotPos[0] / dim[0] - 0.5f));
-            xLim = new float[] { (value[0] / deltaLim) * offset, (value[0] * deltaLim) * offset };
+            float offset = PApplet.exp((PApplet.log(xLim[1] / xLim[0]) / factor) * (0.5f - plotPos[0] / dim[0]));
+            xLim = new float[] { value[0] * offset / deltaLim, value[0] * offset * deltaLim };
         } else {
             float deltaLim = (xLim[1] - xLim[0]) / (2 * factor);
-            float offset = -2 * deltaLim * (plotPos[0] / dim[0] - 0.5f);
-            xLim = new float[] { value[0] - deltaLim + offset, value[0] + deltaLim + offset };
+            float offset = 2 * deltaLim * (0.5f - plotPos[0] / dim[0]);
+            xLim = new float[] { value[0] + offset - deltaLim, value[0] + offset + deltaLim };
         }
 
         if (yLog) {
             float deltaLim = PApplet.exp(PApplet.log(yLim[1] / yLim[0]) / (2 * factor));
-            float offset = PApplet.exp(-(PApplet.log(yLim[1] / yLim[0]) / factor) * (-plotPos[1] / dim[1] - 0.5f));
-            yLim = new float[] { (value[1] / deltaLim) * offset, (value[1] * deltaLim) * offset };
+            float offset = PApplet.exp((PApplet.log(yLim[1] / yLim[0]) / factor) * (0.5f + plotPos[1] / dim[1]));
+            yLim = new float[] { value[1] * offset / deltaLim, value[1] * offset * deltaLim };
         } else {
             float deltaLim = (yLim[1] - yLim[0]) / (2 * factor);
-            float offset = -2 * deltaLim * (-plotPos[1] / dim[1] - 0.5f);
-            yLim = new float[] { value[1] - deltaLim + offset, value[1] + deltaLim + offset };
+            float offset = 2 * deltaLim * (0.5f + plotPos[1] / dim[1]);
+            yLim = new float[] { value[1] + offset - deltaLim, value[1] + offset + deltaLim };
         }
 
         // Fix the limits
@@ -1470,7 +1443,7 @@ public class GPlot implements PConstants {
      * Sets the plot position
      * 
      * @param newPos
-     *            the new plot position
+     *            the new plot (x, y) position
      */
     public void setPos(float[] newPos) {
         if (newPos != null && newPos.length == 2) {
@@ -1835,8 +1808,8 @@ public class GPlot implements PConstants {
      *            layer
      */
     public void setIncludeAllLayers(boolean newIncludeAllLayers) {
-        if (newIncludeAllLayers != includeAllLayers) {
-            includeAllLayers = newIncludeAllLayers;
+        if (newIncludeAllLayers != includeAllLayersInLim) {
+            includeAllLayersInLim = newIncludeAllLayers;
 
             // Update the plot limits
             updateLimits();
@@ -1850,8 +1823,8 @@ public class GPlot implements PConstants {
      *            the new expansion factor
      */
     public void setExpandAxisFactor(float newExpandAxisFactor) {
-        if (newExpandAxisFactor >= 0) {
-            expandAxisFactor = newExpandAxisFactor;
+        if (newExpandAxisFactor >= 0 && newExpandAxisFactor != expandLimFactor) {
+            expandLimFactor = newExpandAxisFactor;
 
             // Update the plot limits
             updateLimits();
@@ -2371,10 +2344,10 @@ public class GPlot implements PConstants {
      *            the zoom factor to increase or decrease with each mouse click
      * @param increaseButton
      *            the mouse button to increase the zoom. It could be LEFT, RIGHT
-     *            or CENTER
+     *            or CENTER. Select CENTER to use the mouse wheel
      * @param decreaseButton
      *            the mouse button to decrease the zoom. It could be LEFT, RIGHT
-     *            or CENTER
+     *            or CENTER. Select CENTER to use the mouse wheel
      * @param increaseKeyModifier
      *            the key modifier to use in conjunction with the increase zoom
      *            mouse button. It could be GPlot.SHIFTMOD, GPlot.CTRLMOD,
@@ -2411,6 +2384,33 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Activates the option to zoom with the mouse using the specified buttons
+     * 
+     * @param factor
+     *            the zoom factor to increase or decrease with each mouse click
+     * @param increaseButton
+     *            the mouse button to increase the zoom. It could be LEFT, RIGHT
+     *            or CENTER. Select CENTER to use the mouse wheel
+     * @param decreaseButton
+     *            the mouse button to decrease the zoom. It could be LEFT, RIGHT
+     *            or CENTER. Select CENTER to use the mouse wheel
+     */
+    public void activateZooming(float factor, int increaseButton, int decreaseButton) {
+        activateZooming(factor, increaseButton, decreaseButton, NONE, NONE);
+    }
+
+    /**
+     * Activates the option to zoom with the mouse using the LEFT and RIGHT
+     * buttons
+     * 
+     * @param factor
+     *            the zoom factor to increase or decrease with each mouse click
+     */
+    public void activateZooming(float factor) {
+        activateZooming(factor, LEFT, RIGHT, NONE, NONE);
+    }
+
+    /**
      * Activates the option to zoom with the mouse using the LEFT and RIGHT
      * buttons
      */
@@ -2430,7 +2430,8 @@ public class GPlot implements PConstants {
      * specified button and the specified key modifier
      * 
      * @param button
-     *            the mouse button to use. It could be LEFT, RIGHT or CENTER
+     *            the mouse button to use. It could be LEFT, RIGHT or CENTER.
+     *            Select CENTER to use the mouse wheel
      * @param keyModifier
      *            the key modifier to use in conjunction with the mouse button.
      *            It could be GPlot.SHIFTMOD, GPlot.CTRLMOD, GPlot.METAMOD,
@@ -2446,6 +2447,18 @@ public class GPlot implements PConstants {
         if (keyModifier == SHIFTMOD || keyModifier == CTRLMOD || keyModifier == METAMOD || keyModifier == ALTMOD || keyModifier == NONE) {
             centeringKeyModifier = keyModifier;
         }
+    }
+
+    /**
+     * Activates the option to center the plot with the mouse using the
+     * specified button
+     * 
+     * @param button
+     *            the mouse button to use. It could be LEFT, RIGHT or CENTER.
+     *            Select CENTER to use the mouse wheel
+     */
+    public void activateCentering(int button) {
+        activateCentering(button, NONE);
     }
 
     /**
@@ -2487,6 +2500,17 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Activates the option to pan the plot with the mouse using the specified
+     * button
+     * 
+     * @param button
+     *            the mouse button to use. It could be LEFT, RIGHT or CENTER
+     */
+    public void activatePanning(int button) {
+        activatePanning(button, NONE);
+    }
+
+    /**
      * Activates the option to pan the plot with the mouse using the LEFT button
      */
     public void activatePanning() {
@@ -2498,6 +2522,7 @@ public class GPlot implements PConstants {
      */
     public void deactivatePanning() {
         panningIsActive = false;
+        panningReferencePoint = null;
     }
 
     /**
@@ -2525,6 +2550,17 @@ public class GPlot implements PConstants {
 
     /**
      * Activates the option to draw the labels of the points with the mouse
+     * using the specified button
+     * 
+     * @param button
+     *            the mouse button to use. It could be LEFT, RIGHT or CENTER
+     */
+    public void activatePointLabels(int button) {
+        activatePointLabels(button, NONE);
+    }
+
+    /**
+     * Activates the option to draw the labels of the points with the mouse
      * using the LEFT button
      */
     public void activatePointLabels() {
@@ -2536,6 +2572,7 @@ public class GPlot implements PConstants {
      */
     public void deactivatePointLabels() {
         labelingIsActive = false;
+        mousePos = null;
     }
 
     /**
@@ -2544,7 +2581,8 @@ public class GPlot implements PConstants {
      * key modifier
      * 
      * @param button
-     *            the mouse button to use. It could be LEFT, RIGHT or CENTER
+     *            the mouse button to use. It could be LEFT, RIGHT or CENTER.
+     *            Select CENTER to use the mouse wheel
      * @param keyModifier
      *            the key modifier to use in conjunction with the mouse button.
      *            It could be GPlot.SHIFTMOD, GPlot.CTRLMOD, GPlot.METAMOD,
@@ -2552,8 +2590,8 @@ public class GPlot implements PConstants {
      */
     public void activateReset(int button, int keyModifier) {
         resetIsActive = true;
-        xLimSave = null;
-        yLimSave = null;
+        xLimReset = null;
+        yLimReset = null;
 
         if (button == LEFT || button == RIGHT || button == CENTER) {
             resetButton = button;
@@ -2566,10 +2604,22 @@ public class GPlot implements PConstants {
 
     /**
      * Activates the option to return to the value of the axes limits previous
-     * to any mouse interaction, using the RIGHT button + the CTRL key modifier
+     * to any mouse interaction, using the specified button
+     * 
+     * @param button
+     *            the mouse button to use. It could be LEFT, RIGHT or CENTER.
+     *            Select CENTER to use the mouse wheel
+     */
+    public void activateReset(int button) {
+        activateReset(button, NONE);
+    }
+
+    /**
+     * Activates the option to return to the value of the axes limits previous
+     * to any mouse interaction, using the RIGHT button
      */
     public void activateReset() {
-        activateReset(RIGHT, CTRLMOD);
+        activateReset(RIGHT, NONE);
     }
 
     /**
@@ -2578,8 +2628,8 @@ public class GPlot implements PConstants {
      */
     public void deactivateReset() {
         resetIsActive = false;
-        xLimSave = null;
-        yLimSave = null;
+        xLimReset = null;
+        yLimReset = null;
     }
 
     /**
@@ -2589,99 +2639,101 @@ public class GPlot implements PConstants {
      *            the mouse event detected by the processing applet
      */
     public void mouseEvent(MouseEvent event) {
-        int action = event.getAction();
-        int button = (action == MouseEvent.WHEEL) ? CENTER : event.getButton();
-        int modifiers = event.getModifiers();
-        float xMouse = event.getX();
-        float yMouse = event.getY();
-        int wheelCounter = (action == MouseEvent.WHEEL) ? event.getCount() : 0;
+        if (zoomingIsActive || centeringIsActive || panningIsActive || labelingIsActive || resetIsActive) {
+            int action = event.getAction();
+            int button = (action == MouseEvent.WHEEL) ? CENTER : event.getButton();
+            int modifiers = event.getModifiers();
+            float xMouse = event.getX();
+            float yMouse = event.getY();
+            int wheelCounter = (action == MouseEvent.WHEEL) ? event.getCount() : 0;
 
-        if (zoomingIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
-            if (button == increaseZoomButton && (increaseZoomKeyModifier == NONE || (modifiers & increaseZoomKeyModifier) != 0)) {
-                if (isOverBox(xMouse, yMouse)) {
-                    // Save the axes limits if it's the first mouse
-                    // modification after the last reset
-                    if (resetIsActive && (xLimSave == null || yLimSave == null)) {
-                        xLimSave = xLim.clone();
-                        yLimSave = yLim.clone();
-                    }
-
-                    if (wheelCounter <= 0) {
-                        zoom(zoomFactor, xMouse, yMouse);
-                    }
-                }
-            }
-
-            if (button == decreaseZoomButton && (decreaseZoomKeyModifier == NONE || (modifiers & decreaseZoomKeyModifier) != 0)) {
-                if (isOverBox(xMouse, yMouse)) {
-                    // Save the axes limits if it's the first mouse
-                    // modification after the last reset
-                    if (resetIsActive && (xLimSave == null || yLimSave == null)) {
-                        xLimSave = xLim.clone();
-                        yLimSave = yLim.clone();
-                    }
-
-                    if (wheelCounter >= 0) {
-                        zoom(1 / zoomFactor, xMouse, yMouse);
-                    }
-                }
-            }
-        }
-
-        if (centeringIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
-            if (button == centeringButton && (centeringKeyModifier == NONE || (modifiers & centeringKeyModifier) != 0)) {
-                if (isOverBox(xMouse, yMouse)) {
-                    // Save the axes limits if it's the first mouse
-                    // modification after the last reset
-                    if (resetIsActive && (xLimSave == null || yLimSave == null)) {
-                        xLimSave = xLim.clone();
-                        yLimSave = yLim.clone();
-                    }
-
-                    center(xMouse, yMouse);
-                }
-            }
-        }
-
-        if (panningIsActive) {
-            if (button == panningButton && (panningKeyModifier == NONE || (modifiers & panningKeyModifier) != 0)) {
-                if (action == MouseEvent.DRAG) {
-                    if (panningReferencePoint != null) {
+            if (zoomingIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
+                if (button == increaseZoomButton && (increaseZoomKeyModifier == NONE || (modifiers & increaseZoomKeyModifier) != 0)) {
+                    if (isOverBox(xMouse, yMouse)) {
                         // Save the axes limits if it's the first mouse
                         // modification after the last reset
-                        if (resetIsActive && (xLimSave == null || yLimSave == null)) {
-                            xLimSave = xLim.clone();
-                            yLimSave = yLim.clone();
+                        if (resetIsActive && (xLimReset == null || yLimReset == null)) {
+                            xLimReset = xLim.clone();
+                            yLimReset = yLim.clone();
                         }
 
-                        align(panningReferencePoint, xMouse, yMouse);
-                    } else if (isOverBox(xMouse, yMouse)) {
-                        panningReferencePoint = getValueAt(xMouse, yMouse);
+                        if (wheelCounter <= 0) {
+                            zoom(zoomFactor, xMouse, yMouse);
+                        }
                     }
-                } else if (action == MouseEvent.RELEASE) {
-                    panningReferencePoint = null;
+                }
+
+                if (button == decreaseZoomButton && (decreaseZoomKeyModifier == NONE || (modifiers & decreaseZoomKeyModifier) != 0)) {
+                    if (isOverBox(xMouse, yMouse)) {
+                        // Save the axes limits if it's the first mouse
+                        // modification after the last reset
+                        if (resetIsActive && (xLimReset == null || yLimReset == null)) {
+                            xLimReset = xLim.clone();
+                            yLimReset = yLim.clone();
+                        }
+
+                        if (wheelCounter >= 0) {
+                            zoom(1 / zoomFactor, xMouse, yMouse);
+                        }
+                    }
                 }
             }
-        }
 
-        if (labelingIsActive) {
-            if (button == labelingButton && (labelingKeyModifier == NONE || (modifiers & labelingKeyModifier) != 0)) {
-                if (action == MouseEvent.PRESS || action == MouseEvent.DRAG) {
-                    mousePos = new float[] { event.getX(), event.getY() };
-                } else {
-                    mousePos = null;
+            if (centeringIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
+                if (button == centeringButton && (centeringKeyModifier == NONE || (modifiers & centeringKeyModifier) != 0)) {
+                    if (isOverBox(xMouse, yMouse)) {
+                        // Save the axes limits if it's the first mouse
+                        // modification after the last reset
+                        if (resetIsActive && (xLimReset == null || yLimReset == null)) {
+                            xLimReset = xLim.clone();
+                            yLimReset = yLim.clone();
+                        }
+
+                        center(xMouse, yMouse);
+                    }
                 }
             }
-        }
 
-        if (resetIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
-            if (button == resetButton && (resetKeyModifier == NONE || (modifiers & resetKeyModifier) != 0)) {
-                if (isOverBox(xMouse, yMouse)) {
-                    if (xLimSave != null && yLimSave != null) {
-                        setXLim(xLimSave);
-                        setYLim(yLimSave);
-                        xLimSave = null;
-                        yLimSave = null;
+            if (panningIsActive) {
+                if (button == panningButton && (panningKeyModifier == NONE || (modifiers & panningKeyModifier) != 0)) {
+                    if (action == MouseEvent.DRAG) {
+                        if (panningReferencePoint != null) {
+                            // Save the axes limits if it's the first mouse
+                            // modification after the last reset
+                            if (resetIsActive && (xLimReset == null || yLimReset == null)) {
+                                xLimReset = xLim.clone();
+                                yLimReset = yLim.clone();
+                            }
+
+                            align(panningReferencePoint, xMouse, yMouse);
+                        } else if (isOverBox(xMouse, yMouse)) {
+                            panningReferencePoint = getValueAt(xMouse, yMouse);
+                        }
+                    } else if (action == MouseEvent.RELEASE) {
+                        panningReferencePoint = null;
+                    }
+                }
+            }
+
+            if (labelingIsActive) {
+                if (button == labelingButton && (labelingKeyModifier == NONE || (modifiers & labelingKeyModifier) != 0)) {
+                    if ((action == MouseEvent.PRESS || action == MouseEvent.DRAG) && isOverBox(xMouse, yMouse)) {
+                        mousePos = new float[] { xMouse, yMouse };
+                    } else {
+                        mousePos = null;
+                    }
+                }
+            }
+
+            if (resetIsActive && (action == MouseEvent.CLICK || action == MouseEvent.WHEEL)) {
+                if (button == resetButton && (resetKeyModifier == NONE || (modifiers & resetKeyModifier) != 0)) {
+                    if (isOverBox(xMouse, yMouse)) {
+                        if (xLimReset != null && yLimReset != null) {
+                            setXLim(xLimReset);
+                            setYLim(yLimReset);
+                            xLimReset = null;
+                            yLimReset = null;
+                        }
                     }
                 }
             }

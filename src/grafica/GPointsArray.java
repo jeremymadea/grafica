@@ -33,6 +33,7 @@ package grafica;
  * @author Javier Gracia Carpio
  */
 public class GPointsArray {
+    protected static final int DEFAULT_SIZE = 50;
     protected int n;
     protected GPoint[] points;
 
@@ -41,7 +42,7 @@ public class GPointsArray {
      */
     public GPointsArray() {
         n = 0;
-        points = new GPoint[50];
+        points = new GPoint[DEFAULT_SIZE];
     }
 
     /**
@@ -56,7 +57,7 @@ public class GPointsArray {
         if (initialSize >= 0) {
             points = new GPoint[initialSize];
         } else {
-            points = new GPoint[50];
+            points = new GPoint[DEFAULT_SIZE];
         }
     }
 
@@ -68,8 +69,8 @@ public class GPointsArray {
      */
     public GPointsArray(GPoint[] points) {
         if (points != null) {
-            this.points = new GPoint[points.length];
             n = 0;
+            this.points = new GPoint[points.length];
 
             for (int i = 0; i < points.length; i++) {
                 if (points[i] != null) {
@@ -79,7 +80,7 @@ public class GPointsArray {
             }
         } else {
             n = 0;
-            this.points = new GPoint[50];
+            this.points = new GPoint[DEFAULT_SIZE];
         }
     }
 
@@ -99,7 +100,31 @@ public class GPointsArray {
             }
         } else {
             n = 0;
-            this.points = new GPoint[50];
+            this.points = new GPoint[DEFAULT_SIZE];
+        }
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param x
+     *            the points x coordinates
+     * @param y
+     *            the points y coordinates
+     * @param labels
+     *            the points text labels
+     */
+    public GPointsArray(float[] x, float[] y, String[] labels) {
+        if (x != null && y != null && labels != null && x.length == y.length && x.length == labels.length) {
+            n = x.length;
+            points = new GPoint[n];
+
+            for (int i = 0; i < n; i++) {
+                points[i] = new GPoint(x[i], y[i], labels[i]);
+            }
+        } else {
+            n = 0;
+            this.points = new GPoint[DEFAULT_SIZE];
         }
     }
 
