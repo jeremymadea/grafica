@@ -1912,6 +1912,28 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets the points of one of the layers in the plot
+     * 
+     * @param points
+     *            the new points for the layer
+     * @param id
+     *            the layer id
+     */
+    public void setPoints(GPointsArray points, String id) {
+        if (mainLayer.isId(id)) {
+            setPoints(points);
+        } else if (points != null) {
+            GLayer l = getLayer(id);
+            l.setPoints(points);
+
+            // Update the plot limits if necessary
+            if (includeAllLayersInLim) {
+                updateLimits();
+            }
+        }
+    }
+
+    /**
      * Sets the point colors for the main layer
      * 
      * @param pointColors
