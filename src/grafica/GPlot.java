@@ -31,6 +31,7 @@ import java.util.ArrayList;
 
 import processing.core.PApplet;
 import processing.core.PConstants;
+import processing.core.PImage;
 import processing.core.PShape;
 import processing.event.MouseEvent;
 
@@ -1103,6 +1104,20 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Draws the points from all layers in the plot
+     * 
+     * @param pointImg
+     *            the image that should be used to represent the points
+     */
+    public void drawPoints(PImage pointImg) {
+        mainLayer.drawPoints(pointImg);
+
+        for (int i = 0; i < layerList.size(); i++) {
+            layerList.get(i).drawPoints(pointImg);
+        }
+    }
+
+    /**
      * Draws a point in the plot
      * 
      * @param point
@@ -1150,6 +1165,18 @@ public class GPlot implements PConstants {
      */
     public void drawPoint(GPoint point, PShape pointShape, int pointColor) {
         mainLayer.drawPoint(point, pointShape, pointColor);
+    }
+
+    /**
+     * Draws a point in the plot
+     * 
+     * @param point
+     *            the point to draw
+     * @param pointImg
+     *            the image that should be used to represent the point
+     */
+    public void drawPoint(GPoint point, PImage pointImg) {
+        mainLayer.drawPoint(point, pointImg);
     }
 
     /**
@@ -2069,6 +2096,52 @@ public class GPlot implements PConstants {
         topAxis.setTickLength(tickLength);
         yAxis.setTickLength(tickLength);
         rightAxis.setTickLength(tickLength);
+    }
+
+    /**
+     * Sets the approximate number of ticks in the horizontal axes. The actual
+     * number of ticks depends on the axes limits and the axes scale
+     * 
+     * @param nTicks
+     *            the new approximate number of ticks in the horizontal axes
+     */
+    public void setHorizontalAxesNTicks(int nTicks) {
+        xAxis.setNTicks(nTicks);
+        topAxis.setNTicks(nTicks);
+    }
+
+    /**
+     * Sets the horizontal axes ticks
+     * 
+     * @param ticks
+     *            the new horizontal axes ticks
+     */
+    public void setHorizontalAxesTicks(float[] ticks) {
+        xAxis.setTicks(ticks);
+        topAxis.setTicks(ticks);
+    }
+
+    /**
+     * Sets the approximate number of ticks in the vertical axes. The actual
+     * number of ticks depends on the axes limits and the axes scale
+     * 
+     * @param nTicks
+     *            the new approximate number of ticks in the vertical axes
+     */
+    public void setVerticalAxesNTicks(int nTicks) {
+        yAxis.setNTicks(nTicks);
+        rightAxis.setNTicks(nTicks);
+    }
+
+    /**
+     * Sets the vertical axes ticks
+     * 
+     * @param ticks
+     *            the new vertical axes ticks
+     */
+    public void setVerticalAxesTicks(float[] ticks) {
+        yAxis.setTicks(ticks);
+        rightAxis.setTicks(ticks);
     }
 
     /**

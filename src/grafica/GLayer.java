@@ -32,6 +32,7 @@ import java.util.Arrays;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PFont;
+import processing.core.PImage;
 import processing.core.PShape;
 
 /**
@@ -787,6 +788,29 @@ public class GLayer implements PConstants {
     }
 
     /**
+     * Draws the points inside the layer limits
+     * 
+     * @param pointImg
+     *            the image that should be used to represent the points
+     */
+    public void drawPoints(PImage pointImg) {
+        if (pointImg != null) {
+            int nPoints = plotPoints.getNPoints();
+
+            parent.pushStyle();
+            parent.imageMode(CENTER);
+
+            for (int i = 0; i < nPoints; i++) {
+                if (inside[i]) {
+                    parent.image(pointImg, plotPoints.getX(i), plotPoints.getY(i));
+                }
+            }
+
+            parent.popStyle();
+        }
+    }
+
+    /**
      * Draws a point
      * 
      * @param point
@@ -861,6 +885,29 @@ public class GLayer implements PConstants {
                 parent.shape(pointShape, plotPoint.getX(), plotPoint.getY());
                 parent.popStyle();
             }
+        }
+    }
+
+    /**
+     * Draws a point
+     * 
+     * @param point
+     *            the point to draw
+     * @param pointImg
+     *            the image that should be used to represent the point
+     */
+    public void drawPoint(GPoint point, PImage pointImg) {
+        if (point != null && pointImg != null) {
+            GPoint plotPoint = valueToPlot(point);
+
+            parent.pushStyle();
+            parent.imageMode(CENTER);
+
+            if (isInside(plotPoint)) {
+                parent.image(pointImg, plotPoint.getX(), plotPoint.getY());
+            }
+
+            parent.popStyle();
         }
     }
 
