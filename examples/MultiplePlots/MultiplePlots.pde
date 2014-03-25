@@ -8,7 +8,8 @@ public float[] gaussianStack;
 public float[] uniformStack;
 public int gaussianCounter;
 public int uniformCounter;
-public PShape mug, star;
+public PImage mug;
+public PShape star;
 public Random r;
 
 public void setup(){
@@ -141,11 +142,10 @@ public void setup(){
   plot3.activateCentering(LEFT, GPlot.CTRLMOD);
   plot4.activateZooming();
 
-  // Load some shapes to use later in the plots
-  mug = loadShape("beermug.svg");
-  mug.scale(0.7);
-  mug.translate(-mug.width/2, -mug.height/2);
-   
+  // Load some images and shapes to use later in the plots
+  mug = loadImage("beermug.png");
+  mug.resize(int(0.7*mug.width), int(0.7*mug.height));
+    
   star = loadShape("star.svg");
   star.translate(-star.width/2, -star.height/2);
   star.disableStyle();
