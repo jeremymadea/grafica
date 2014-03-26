@@ -2111,6 +2111,17 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets the separation between the ticks in the horizontal axes
+     * 
+     * @param ticksSeparation
+     *            the new ticks separation in the horizontal axes
+     */
+    public void setHorizontalAxesTicksSeparation(float ticksSeparation) {
+        xAxis.setTicksSeparation(ticksSeparation);
+        topAxis.setTicksSeparation(ticksSeparation);
+    }
+
+    /**
      * Sets the horizontal axes ticks
      * 
      * @param ticks
@@ -2131,6 +2142,17 @@ public class GPlot implements PConstants {
     public void setVerticalAxesNTicks(int nTicks) {
         yAxis.setNTicks(nTicks);
         rightAxis.setNTicks(nTicks);
+    }
+
+    /**
+     * Sets the separation between the ticks in the vertical axes
+     * 
+     * @param ticksSeparation
+     *            the new ticks separation in the vertical axes
+     */
+    public void setVerticalAxesTicksSeparation(float ticksSeparation) {
+        yAxis.setTicksSeparation(ticksSeparation);
+        rightAxis.setTicksSeparation(ticksSeparation);
     }
 
     /**

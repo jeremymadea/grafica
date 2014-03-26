@@ -56,6 +56,7 @@ public class GAxis implements PConstants {
 
     // Ticks properties
     protected int nTicks;
+    protected float ticksSeparation;
     protected float[] ticks;
     protected float[] plotTicks;
     protected boolean[] ticksInside;
@@ -112,6 +113,7 @@ public class GAxis implements PConstants {
         lineWidth = 1;
 
         nTicks = 5;
+        ticksSeparation = -1;
         ticks = obtainTicks();
         plotTicks = valueToPlot(ticks);
         ticksInside = isInside(plotTicks);
@@ -206,12 +208,23 @@ public class GAxis implements PConstants {
      * @return the axis ticks
      */
     protected float[] obtainLinearTicks() {
-        float[] linearTicks = new float[0];
+        // Obtain the required precision for the ticks
+        float step = 0;
+        int sigDigits = 0;
+        int nSteps = 0;
 
-        if (nTicks > 0) {
-            // Obtain the required precision for the ticks
-            float step = (lim[1] - lim[0]) / nTicks;
-            int sigDigits = obtainSigDigits(step);
+        if (ticksSeparation > 0) {
+            step = ticksSeparation;
+            sigDigits = obtainSigDigits(step);
+
+            while (roundPlus(step, sigDigits) - step != 0) {
+                sigDigits++;
+            }
+
+            nSteps = PApplet.floor((lim[1] - lim[0]) / step);
+        } else if (nTicks > 0) {
+            step = (lim[1] - lim[0]) / nTicks;
+            sigDigits = obtainSigDigits(step);
             step = roundPlus(step, sigDigits);
 
             if (step == 0 || Math.abs(step) > Math.abs(lim[1] - lim[0])) {
@@ -219,26 +232,29 @@ public class GAxis implements PConstants {
                 step = roundPlus((lim[1] - lim[0]) / nTicks, sigDigits);
             }
 
-            int nSteps = PApplet.floor((lim[1] - lim[0]) / step);
+            nSteps = PApplet.floor((lim[1] - lim[0]) / step);
+        }
 
-            if (nSteps > 0) {
-                // Obtain the first tick
-                float firstTick = lim[0] + ((lim[1] - lim[0]) - nSteps * step) / 2;
+        // Calculate the linear ticks
+        float[] linearTicks = new float[0];
 
-                // Subtract some steps to be sure we have all
-                firstTick = roundPlus(firstTick - 2 * step, sigDigits);
+        if (nSteps > 0) {
+            // Obtain the first tick
+            float firstTick = lim[0] + ((lim[1] - lim[0]) - nSteps * step) / 2;
 
-                while ((lim[1] - firstTick) * (lim[0] - firstTick) > 0) {
-                    firstTick = roundPlus(firstTick + step, sigDigits);
-                }
+            // Subtract some steps to be sure we have all
+            firstTick = roundPlus(firstTick - 2 * step, sigDigits);
 
-                // Calculate the rest of the ticks
-                linearTicks = new float[PApplet.floor(Math.abs((lim[1] - firstTick) / step)) + 1];
-                linearTicks[0] = firstTick;
+            while ((lim[1] - firstTick) * (lim[0] - firstTick) > 0) {
+                firstTick = roundPlus(firstTick + step, sigDigits);
+            }
 
-                for (int i = 1; i < linearTicks.length; i++) {
-                    linearTicks[i] = roundPlus(linearTicks[i - 1] + step, sigDigits);
-                }
+            // Calculate the rest of the ticks
+            linearTicks = new float[PApplet.floor(Math.abs((lim[1] - firstTick) / step)) + 1];
+            linearTicks[0] = firstTick;
+
+            for (int i = 1; i < linearTicks.length; i++) {
+                linearTicks[i] = roundPlus(linearTicks[i - 1] + step, sigDigits);
             }
         }
 
@@ -412,17 +428,29 @@ public class GAxis implements PConstants {
                         ticks = obtainLogarithmicTicks();
                     } else if (ticks.length > 0) {
                         // Obtain the ticks precision and the tick separation
-                        float step = (ticks.length == 1) ? lim[1] - lim[0] : ticks[1] - ticks[0];
-                        int sigDigits = obtainSigDigits(step);
-                        step = roundPlus(step, sigDigits);
+                        float step = 0;
+                        int sigDigits = 0;
 
-                        if (step == 0 || Math.abs(step) > Math.abs(lim[1] - lim[0])) {
-                            sigDigits++;
+                        if (ticksSeparation > 0) {
+                            step = ticksSeparation;
+                            sigDigits = obtainSigDigits(step);
+
+                            while (roundPlus(step, sigDigits) - step != 0) {
+                                sigDigits++;
+                            }
+                        } else {
                             step = (ticks.length == 1) ? lim[1] - lim[0] : ticks[1] - ticks[0];
+                            sigDigits = obtainSigDigits(step);
                             step = roundPlus(step, sigDigits);
-                        }
 
-                        step = (lim[1] > lim[0]) ? Math.abs(step) : -Math.abs(step);
+                            if (step == 0 || Math.abs(step) > Math.abs(lim[1] - lim[0])) {
+                                sigDigits++;
+                                step = (ticks.length == 1) ? lim[1] - lim[0] : ticks[1] - ticks[0];
+                                step = roundPlus(step, sigDigits);
+                            }
+
+                            step = (lim[1] > lim[0]) ? Math.abs(step) : -Math.abs(step);
+                        }
 
                         // Obtain the first tick
                         float firstTick = ticks[0] + step * PApplet.ceil((lim[0] - ticks[0]) / step);
@@ -840,6 +868,7 @@ public class GAxis implements PConstants {
     public void setNTicks(int newNTicks) {
         if (newNTicks >= 0) {
             nTicks = newNTicks;
+            ticksSeparation = -1;
 
             if (!log) {
                 fixedTicks = false;
@@ -848,6 +877,24 @@ public class GAxis implements PConstants {
                 ticksInside = isInside(plotTicks);
                 tickLabels = obtainTickLabels(ticks);
             }
+        }
+    }
+
+    /**
+     * Sets the separation between the ticks in the axis
+     * 
+     * @param newTicksSeparation
+     *            the new ticks separation
+     */
+    public void setTicksSeparation(float newTicksSeparation) {
+        ticksSeparation = newTicksSeparation;
+
+        if (!log) {
+            fixedTicks = false;
+            ticks = obtainTicks();
+            plotTicks = valueToPlot(ticks);
+            ticksInside = isInside(plotTicks);
+            tickLabels = obtainTickLabels(ticks);
         }
     }
 
