@@ -261,6 +261,7 @@ public class GHistogram implements PConstants {
      */
     protected void drawHistLabels() {
         parent.pushStyle();
+        parent.textMode(MODEL);
         parent.textFont(font);
         parent.textSize(fontSize);
         parent.fill(fontColor);

@@ -27,38 +27,32 @@
 
 package grafica;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 /**
  * Array of points class.
  * 
  * @author Javier Gracia Carpio
  */
 public class GPointsArray {
-    protected static final int DEFAULT_SIZE = 50;
-    protected int n;
-    protected GPoint[] points;
+    protected ArrayList<GPoint> points;
 
     /**
      * Constructor
      */
     public GPointsArray() {
-        n = 0;
-        points = new GPoint[DEFAULT_SIZE];
+        points = new ArrayList<GPoint>();
     }
 
     /**
      * Constructor
      * 
      * @param initialSize
-     *            the initial size for the array
+     *            the initial estimate for the size of the array
      */
     public GPointsArray(int initialSize) {
-        n = 0;
-
-        if (initialSize >= 0) {
-            points = new GPoint[initialSize];
-        } else {
-            points = new GPoint[DEFAULT_SIZE];
-        }
+        points = new ArrayList<GPoint>(initialSize);
     }
 
     /**
@@ -68,19 +62,12 @@ public class GPointsArray {
      *            an array of points
      */
     public GPointsArray(GPoint[] points) {
-        if (points != null) {
-            n = 0;
-            this.points = new GPoint[points.length];
+        this.points = new ArrayList<GPoint>(points.length);
 
-            for (int i = 0; i < points.length; i++) {
-                if (points[i] != null) {
-                    this.points[n] = new GPoint(points[i]);
-                    n++;
-                }
+        for (int i = 0; i < points.length; i++) {
+            if (points[i] != null) {
+                this.points.add(new GPoint(points[i]));
             }
-        } else {
-            n = 0;
-            this.points = new GPoint[DEFAULT_SIZE];
         }
     }
 
@@ -91,16 +78,10 @@ public class GPointsArray {
      *            an array of points
      */
     public GPointsArray(GPointsArray points) {
-        if (points != null) {
-            n = points.getNPoints();
-            this.points = new GPoint[n];
+        this.points = new ArrayList<GPoint>(points.getNPoints());
 
-            for (int i = 0; i < n; i++) {
-                this.points[i] = new GPoint(points.get(i));
-            }
-        } else {
-            n = 0;
-            this.points = new GPoint[DEFAULT_SIZE];
+        for (int i = 0; i < points.getNPoints(); i++) {
+            this.points.add(new GPoint(points.get(i)));
         }
     }
 
@@ -115,16 +96,10 @@ public class GPointsArray {
      *            the points text labels
      */
     public GPointsArray(float[] x, float[] y, String[] labels) {
-        if (x != null && y != null && labels != null && x.length == y.length && x.length == labels.length) {
-            n = x.length;
-            points = new GPoint[n];
+        points = new ArrayList<GPoint>(x.length);
 
-            for (int i = 0; i < n; i++) {
-                points[i] = new GPoint(x[i], y[i], labels[i]);
-            }
-        } else {
-            n = 0;
-            this.points = new GPoint[DEFAULT_SIZE];
+        for (int i = 0; i < x.length; i++) {
+            points.add(new GPoint(x[i], y[i], labels[i]));
         }
     }
 
@@ -139,12 +114,7 @@ public class GPointsArray {
      *            the point text label
      */
     public void add(float x, float y, String label) {
-        if (n + 1 > points.length) {
-            points = extendArray(points, n, 50);
-        }
-
-        points[n] = new GPoint(x, y, label);
-        n++;
+        points.add(new GPoint(x, y, label));
     }
 
     /**
@@ -156,7 +126,7 @@ public class GPointsArray {
      *            the point y coordinate
      */
     public void add(float x, float y) {
-        add(x, y, "");
+        points.add(new GPoint(x, y, ""));
     }
 
     /**
@@ -166,14 +136,7 @@ public class GPointsArray {
      *            the point
      */
     public void add(GPoint point) {
-        if (point != null) {
-            if (n + 1 > points.length) {
-                points = extendArray(points, n, 50);
-            }
-
-            points[n] = point;
-            n++;
-        }
+        points.add(new GPoint(point));
     }
 
     /**
@@ -187,15 +150,8 @@ public class GPointsArray {
      *            the points text labels
      */
     public void add(float[] x, float[] y, String[] labels) {
-        if (x != null && y != null && labels != null && x.length == y.length && x.length == labels.length) {
-            if (n + x.length > points.length) {
-                points = extendArray(points, n, x.length);
-            }
-
-            for (int i = 0; i < x.length; i++) {
-                points[n] = new GPoint(x[i], y[i], labels[i]);
-                n++;
-            }
+        for (int i = 0; i < x.length; i++) {
+            points.add(new GPoint(x[i], y[i], labels[i]));
         }
     }
 
@@ -208,15 +164,8 @@ public class GPointsArray {
      *            the points y coordinates
      */
     public void add(float[] x, float[] y) {
-        if (x != null && y != null && x.length == y.length) {
-            if (n + x.length > points.length) {
-                points = extendArray(points, n, x.length);
-            }
-
-            for (int i = 0; i < x.length; i++) {
-                points[n] = new GPoint(x[i], y[i]);
-                n++;
-            }
+        for (int i = 0; i < x.length; i++) {
+            points.add(new GPoint(x[i], y[i]));
         }
     }
 
@@ -227,17 +176,8 @@ public class GPointsArray {
      *            the new set of points
      */
     public void add(GPoint[] pts) {
-        if (pts != null) {
-            if (n + pts.length > points.length) {
-                points = extendArray(points, n, pts.length);
-            }
-
-            for (int i = 0; i < pts.length; i++) {
-                if (pts[i] != null) {
-                    points[n] = pts[i];
-                    n++;
-                }
-            }
+        for (int i = 0; i < pts.length; i++) {
+            points.add(new GPoint(pts[i]));
         }
     }
 
@@ -248,15 +188,8 @@ public class GPointsArray {
      *            the new set of points
      */
     public void add(GPointsArray pts) {
-        if (pts != null) {
-            if (n + pts.getNPoints() > points.length) {
-                points = extendArray(points, n, pts.getNPoints());
-            }
-
-            for (int i = 0; i < pts.getNPoints(); i++) {
-                points[n] = pts.get(i);
-                n++;
-            }
+        for (int i = 0; i < pts.getNPoints(); i++) {
+            points.add(new GPoint(pts.get(i)));
         }
     }
 
@@ -264,41 +197,79 @@ public class GPointsArray {
      * Removes invalid points from the array
      */
     public void removeInvalidPoints() {
-        int counter = 0;
-
-        for (int i = 0; i < n; i++) {
-            if (points[i].isValid()) {
-                points[counter] = points[i];
-                counter++;
+        for (Iterator<GPoint> it = points.iterator(); it.hasNext();) {
+            if (!it.next().isValid()) {
+                it.remove();
             }
         }
-
-        for (int i = counter; i < n; i++) {
-            points[i] = null;
-        }
-
-        n = counter;
     }
 
     /**
-     * Extends an array of points by a given amount
+     * Sets all the points in the array
      * 
      * @param pts
-     *            the original array
-     * @param nPoints
-     *            the number of points in the original array
-     * @param nIncrease
-     *            the number of indices to extend
-     * @return the extended array of points
+     *            the new points. The number of points could differ from the
+     *            original.
      */
-    protected GPoint[] extendArray(GPoint[] pts, int nPoints, int nIncrease) {
-        GPoint[] newPts = new GPoint[nPoints + nIncrease];
+    public void set(GPointsArray pts) {
+        if (pts.getNPoints() == points.size()) {
+            for (int i = 0; i < points.size(); i++) {
+                points.get(i).set(pts.get(i));
+            }
+        } else if (pts.getNPoints() > points.size()) {
+            for (int i = 0; i < points.size(); i++) {
+                points.get(i).set(pts.get(i));
+            }
 
-        for (int i = 0; i < nPoints; i++) {
-            newPts[i] = pts[i];
+            for (int i = points.size(); i < pts.getNPoints(); i++) {
+                points.add(new GPoint(pts.get(i)));
+            }
+        } else {
+            for (int i = 0; i < pts.getNPoints(); i++) {
+                points.get(i).set(pts.get(i));
+            }
+
+            points.subList(pts.getNPoints(), points.size()).clear();
         }
+    }
 
-        return newPts;
+    /**
+     * Sets the x and y coordinates and the label of a point with those from
+     * another point
+     * 
+     * @param i
+     *            the point index. If the index equals the array size, it will
+     *            add a new point to the array.
+     * @param point
+     *            the point to use
+     */
+    public void set(int i, GPoint point) {
+        if (i < points.size()) {
+            points.get(i).set(point);
+        } else if (i == points.size()) {
+            points.add(new GPoint(point));
+        }
+    }
+
+    /**
+     * Sets the x and y coordinates of a specific point in the array
+     * 
+     * @param i
+     *            the point index. If the index equals the array size, it will
+     *            add a new point to the array.
+     * @param x
+     *            the point new x coordinate
+     * @param y
+     *            the point new y coordinate
+     * @param label
+     *            the point new text label
+     */
+    public void set(int i, float x, float y, String label) {
+        if (i < points.size()) {
+            points.get(i).set(x, y, label);
+        } else if (i == points.size()) {
+            points.add(new GPoint(x, y, label));
+        }
     }
 
     /**
@@ -310,9 +281,7 @@ public class GPointsArray {
      *            the point new x coordinate
      */
     public void setX(int i, float x) {
-        if (i >= 0 && i < n) {
-            points[i].setX(x);
-        }
+        points.get(i).setX(x);
     }
 
     /**
@@ -324,9 +293,7 @@ public class GPointsArray {
      *            the point new y coordinate
      */
     public void setY(int i, float y) {
-        if (i >= 0 && i < n) {
-            points[i].setY(y);
-        }
+        points.get(i).setY(y);
     }
 
     /**
@@ -340,9 +307,7 @@ public class GPointsArray {
      *            the point new y coordinate
      */
     public void setXY(int i, float x, float y) {
-        if (i >= 0 && i < n) {
-            points[i].setXY(x, y);
-        }
+        points.get(i).setXY(x, y);
     }
 
     /**
@@ -354,39 +319,18 @@ public class GPointsArray {
      *            the point new text label
      */
     public void setLabel(int i, String label) {
-        if (i >= 0 && i < n) {
-            points[i].setLabel(label);
-        }
-    }
-
-    /**
-     * Replaces a specific point in the array by another point
-     * 
-     * @param i
-     *            the index of the point to replace
-     * @param point
-     *            the new point
-     */
-    public void set(int i, GPoint point) {
-        if (i >= 0 && i < n && point != null) {
-            points[i] = point;
-        }
+        points.get(i).setLabel(label);
     }
 
     /**
      * Sets the total number of points in the array
      * 
      * @param nPoints
-     *            the new total number of points in the array
+     *            the new total number of points in the array. It should be
+     *            smaller than the current number.
      */
     public void setNPoints(int nPoints) {
-        if (nPoints >= 0 && nPoints < n) {
-            for (int i = nPoints; i < n; i++) {
-                points[i] = null;
-            }
-
-            n = nPoints;
-        }
+        points.subList(nPoints, points.size()).clear();
     }
 
     /**
@@ -395,7 +339,7 @@ public class GPointsArray {
      * @return the total number of points in the array
      */
     public int getNPoints() {
-        return n;
+        return points.size();
     }
 
     /**
@@ -407,7 +351,7 @@ public class GPointsArray {
      * @return the point reference
      */
     public GPoint get(int i) {
-        return (i >= 0 && i < n) ? points[i] : null;
+        return points.get(i);
     }
 
     /**
@@ -419,7 +363,7 @@ public class GPointsArray {
      * @return the point x coordinate
      */
     public float getX(int i) {
-        return (i >= 0 && i < n) ? points[i].getX() : 0;
+        return points.get(i).getX();
     }
 
     /**
@@ -431,7 +375,7 @@ public class GPointsArray {
      * @return the point y coordinate
      */
     public float getY(int i) {
-        return (i >= 0 && i < n) ? points[i].getY() : 0;
+        return points.get(i).getY();
     }
 
     /**
@@ -443,7 +387,7 @@ public class GPointsArray {
      * @return the point text label
      */
     public String getLabel(int i) {
-        return (i >= 0 && i < n) ? points[i].getLabel() : "";
+        return points.get(i).getLabel();
     }
 
     /**
@@ -455,7 +399,7 @@ public class GPointsArray {
      * @return true if the point is valid
      */
     public boolean getValid(int i) {
-        return (i >= 0 && i < n) ? points[i].getValid() : false;
+        return points.get(i).getValid();
     }
 
     /**
@@ -467,7 +411,7 @@ public class GPointsArray {
      * @return true if the point is valid
      */
     public boolean isValid(int i) {
-        return (i >= 0 && i < n) ? points[i].isValid() : false;
+        return points.get(i).isValid();
     }
 
     /**
@@ -476,7 +420,6 @@ public class GPointsArray {
      * @return the latest point added to the array
      */
     public GPoint getLastPoint() {
-        return (n > 0) ? points[n - 1] : null;
+        return (points.size() > 0) ? points.get(points.size() - 1) : null;
     }
-
 }

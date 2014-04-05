@@ -1024,6 +1024,7 @@ public class GPlot implements PConstants {
      */
     public void drawBackground() {
         parent.pushStyle();
+        parent.rectMode(CORNER);
         parent.fill(bgColor);
         parent.noStroke();
         parent.rect(-mar[1], -mar[2] - dim[1], outerDim[0], outerDim[1]);
@@ -1035,6 +1036,7 @@ public class GPlot implements PConstants {
      */
     public void drawBox() {
         parent.pushStyle();
+        parent.rectMode(CORNER);
         parent.fill(boxBgColor);
         parent.stroke(boxLineColor);
         parent.strokeWeight(boxLineWidth);
@@ -1469,41 +1471,45 @@ public class GPlot implements PConstants {
     /**
      * Sets the plot position
      * 
-     * @param newPos
-     *            the new plot (x, y) position
-     */
-    public void setPos(float[] newPos) {
-        if (newPos != null && newPos.length == 2) {
-            pos = newPos.clone();
-        }
-    }
-
-    /**
-     * Sets the plot position
-     * 
      * @param x
      *            the new plot x position on the screen
      * @param y
      *            the new plot y position on the screen
      */
     public void setPos(float x, float y) {
-        pos = new float[] { x, y };
+        pos[0] = x;
+        pos[1] = y;
+    }
+
+    /**
+     * Sets the plot position
+     * 
+     * @param newPos
+     *            the new plot (x, y) position
+     */
+    public void setPos(float[] newPos) {
+        setPos(newPos[0], newPos[1]);
     }
 
     /**
      * Sets the plot outer dimensions
      * 
-     * @param newOuterDim
-     *            the new plot outer dimensions
+     * @param xOuterDim
+     *            the new plot x outer dimension
+     * @param yOuterDim
+     *            the new plot y outer dimension
      */
-    public void setOuterDim(float[] newOuterDim) {
-        if (newOuterDim != null && newOuterDim.length == 2 && newOuterDim[0] > 0 && newOuterDim[1] > 0) {
+    public void setOuterDim(float xOuterDim, float yOuterDim) {
+        if (xOuterDim > 0 && yOuterDim > 0) {
             // Make sure that the new plot dimensions are positive
-            float[] newDim = new float[] { newOuterDim[0] - mar[1] - mar[3], newOuterDim[1] - mar[0] - mar[2] };
+            float xDim = xOuterDim - mar[1] - mar[3];
+            float yDim = yOuterDim - mar[0] - mar[2];
 
-            if (newDim[0] > 0 && newDim[1] > 0) {
-                outerDim = newOuterDim.clone();
-                dim = newDim;
+            if (xDim > 0 && yDim > 0) {
+                outerDim[0] = xOuterDim;
+                outerDim[1] = yOuterDim;
+                dim[0] = xDim;
+                dim[1] = yDim;
                 xAxis.setDim(dim);
                 topAxis.setDim(dim);
                 yAxis.setDim(dim);
@@ -1523,31 +1529,11 @@ public class GPlot implements PConstants {
     /**
      * Sets the plot outer dimensions
      * 
-     * @param xOuterDim
-     *            the new plot x outer dimension
-     * @param yOuterDim
-     *            the new plot y outer dimension
+     * @param newOuterDim
+     *            the new plot outer dimensions
      */
-    public void setOuterDim(float xOuterDim, float yOuterDim) {
-        setOuterDim(new float[] { xOuterDim, yOuterDim });
-    }
-
-    /**
-     * Sets the plot margins
-     * 
-     * @param newMar
-     *            the new plot margins
-     */
-    public void setMar(float[] newMar) {
-        if (newMar != null && newMar.length == 4) {
-            // Make sure that the new outer dimensions are positive
-            float[] newOuterDim = new float[] { dim[0] + newMar[1] + newMar[3], dim[1] + newMar[0] + newMar[2] };
-
-            if (newOuterDim[0] > 0 && newOuterDim[1] > 0) {
-                mar = newMar.clone();
-                outerDim = newOuterDim;
-            }
-        }
+    public void setOuterDim(float[] newOuterDim) {
+        setOuterDim(newOuterDim[0], newOuterDim[1]);
     }
 
     /**
@@ -1563,23 +1549,49 @@ public class GPlot implements PConstants {
      *            the new plot right margin
      */
     public void setMar(float bottomMargin, float leftMargin, float topMargin, float rightMargin) {
-        setMar(new float[] { bottomMargin, leftMargin, topMargin, rightMargin });
+        // Make sure that the new outer dimensions are positive
+        float xOuterDim = dim[0] + leftMargin + rightMargin;
+        float yOuterDim = dim[1] + bottomMargin + topMargin;
+
+        if (xOuterDim > 0 && yOuterDim > 0) {
+            mar[0] = bottomMargin;
+            mar[1] = leftMargin;
+            mar[2] = topMargin;
+            mar[3] = rightMargin;
+            outerDim[0] = xOuterDim;
+            outerDim[1] = yOuterDim;
+        }
+    }
+
+    /**
+     * Sets the plot margins
+     * 
+     * @param newMar
+     *            the new plot margins
+     */
+    public void setMar(float[] newMar) {
+        setMar(newMar[0], newMar[1], newMar[2], newMar[3]);
     }
 
     /**
      * Sets the plot box dimensions
      * 
-     * @param newDim
-     *            the new plot box dimensions
+     * @param xDim
+     *            the new plot box x dimension
+     * @param yDim
+     *            the new plot box y dimension
      */
-    public void setDim(float[] newDim) {
-        if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
+    public void setDim(float xDim, float yDim) {
+        if (xDim > 0 && yDim > 0) {
             // Make sure that the new outer dimensions are positive
-            float[] newOuterDim = new float[] { newDim[0] + mar[1] + mar[3], newDim[1] + mar[0] + mar[2] };
+            float xOuterDim = xDim + mar[1] + mar[3];
+            float yOuterDim = yDim + mar[0] + mar[2];
 
-            if (newOuterDim[0] > 0 && newOuterDim[1] > 0) {
-                outerDim = newOuterDim;
-                dim = newDim.clone();
+            if (xOuterDim > 0 && yOuterDim > 0) {
+                outerDim[0] = xOuterDim;
+                outerDim[1] = yOuterDim;
+                dim[0] = xDim;
+                dim[1] = yDim;
                 xAxis.setDim(dim);
                 topAxis.setDim(dim);
                 yAxis.setDim(dim);
@@ -1599,28 +1611,29 @@ public class GPlot implements PConstants {
     /**
      * Sets the plot box dimensions
      * 
-     * @param xDim
-     *            the new plot box x dimension
-     * @param yDim
-     *            the new plot box y dimension
+     * @param newDim
+     *            the new plot box dimensions
      */
-    public void setDim(float xDim, float yDim) {
-        setDim(new float[] { xDim, yDim });
+    public void setDim(float[] newDim) {
+        setDim(newDim[0], newDim[1]);
     }
 
     /**
      * Sets the horizontal axes limits
      * 
-     * @param newXLim
-     *            the new horizontal axes limits
+     * @param lowerLim
+     *            the new axes lower limit
+     * @param upperLim
+     *            the new axes upper limit
      */
-    public void setXLim(float[] newXLim) {
-        if (newXLim != null && newXLim.length == 2 && newXLim[1] != newXLim[0]) {
+    public void setXLim(float lowerLim, float upperLim) {
+        if (lowerLim != upperLim) {
             // Make sure the new limits makes sense
-            if (xLog && (newXLim[0] <= 0 || newXLim[1] <= 0)) {
+            if (xLog && (lowerLim <= 0 || upperLim <= 0)) {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
-                xLim = newXLim.clone();
+                xLim[0] = lowerLim;
+                xLim[1] = upperLim;
                 invertedXScale = xLim[0] > xLim[1];
 
                 // Fix the limits
@@ -1639,28 +1652,29 @@ public class GPlot implements PConstants {
     /**
      * Sets the horizontal axes limits
      * 
-     * @param lowerLim
-     *            the new axes lower limit
-     * @param upperLim
-     *            the new axes upper limit
+     * @param newXLim
+     *            the new horizontal axes limits
      */
-    public void setXLim(float lowerLim, float upperLim) {
-        setXLim(new float[] { lowerLim, upperLim });
+    public void setXLim(float[] newXLim) {
+        setXLim(newXLim[0], newXLim[1]);
     }
 
     /**
      * Sets the vertical axes limits
      * 
-     * @param newYLim
-     *            the new vertical axes limits
+     * @param lowerLim
+     *            the new axes lower limit
+     * @param upperLim
+     *            the new axes upper limit
      */
-    public void setYLim(float[] newYLim) {
-        if (newYLim != null && newYLim.length == 2 && newYLim[1] != newYLim[0]) {
+    public void setYLim(float lowerLim, float upperLim) {
+        if (lowerLim != upperLim) {
             // Make sure the new limits makes sense
-            if (yLog && (newYLim[0] <= 0 || newYLim[1] <= 0)) {
+            if (yLog && (lowerLim <= 0 || upperLim <= 0)) {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
-                yLim = newYLim.clone();
+                yLim[0] = lowerLim;
+                yLim[1] = upperLim;
                 invertedYScale = yLim[0] > yLim[1];
 
                 // Fix the limits
@@ -1679,13 +1693,11 @@ public class GPlot implements PConstants {
     /**
      * Sets the vertical axes limits
      * 
-     * @param lowerLim
-     *            the new axes lower limit
-     * @param upperLim
-     *            the new axes upper limit
+     * @param newYLim
+     *            the new vertical axes limits
      */
-    public void setYLim(float lowerLim, float upperLim) {
-        setYLim(new float[] { lowerLim, upperLim });
+    public void setYLim(float[] newYLim) {
+        setYLim(newYLim[0], newYLim[1]);
     }
 
     /**
@@ -1787,7 +1799,9 @@ public class GPlot implements PConstants {
     public void setInvertedXScale(boolean newInvertedXScale) {
         if (newInvertedXScale != invertedXScale) {
             invertedXScale = newInvertedXScale;
-            xLim = new float[] { xLim[1], xLim[0] };
+            float temp = xLim[0];
+            xLim[0] = xLim[1];
+            xLim[1] = temp;
 
             // Update the axes
             xAxis.setLim(xLim);
@@ -1811,7 +1825,9 @@ public class GPlot implements PConstants {
     public void setInvertedYScale(boolean newInvertedYScale) {
         if (newInvertedYScale != invertedYScale) {
             invertedYScale = newInvertedYScale;
-            yLim = new float[] { yLim[1], yLim[0] };
+            float temp = yLim[0];
+            yLim[0] = yLim[1];
+            yLim[1] = temp;
 
             // Update the axes
             yAxis.setLim(yLim);

@@ -52,7 +52,7 @@ public class GPoint {
         this.x = x;
         this.y = y;
         this.label = label;
-        valid = isValidNumber(x) && isValidNumber(y);
+        valid = isValidNumber(this.x) && isValidNumber(this.y);
     }
 
     /**
@@ -87,6 +87,33 @@ public class GPoint {
      */
     protected boolean isValidNumber(float number) {
         return !Float.isNaN(number) && !Float.isInfinite(number);
+    }
+
+    /**
+     * Sets the point x and y coordinates and the label
+     * 
+     * @param newX
+     *            the new x coordinate
+     * @param newY
+     *            the new y coordinate
+     * @param newLabel
+     *            the new point text label
+     */
+    public void set(float newX, float newY, String newLabel) {
+        x = newX;
+        y = newY;
+        label = newLabel;
+        valid = isValidNumber(x) && isValidNumber(y);
+    }
+
+    /**
+     * Sets the point x and y coordinates and the label
+     * 
+     * @param point
+     *            the point to use as a reference
+     */
+    public void set(GPoint point) {
+        set(point.getX(), point.getY(), point.getLabel());
     }
 
     /**

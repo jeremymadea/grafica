@@ -109,6 +109,7 @@ public class GAxisLabel implements PConstants {
      */
     protected void drawAsXLabel() {
         parent.pushStyle();
+        parent.textMode(MODEL);
         parent.textFont(font);
         parent.textSize(fontSize);
         parent.fill(fontColor);
@@ -134,6 +135,7 @@ public class GAxisLabel implements PConstants {
      */
     protected void drawAsYLabel() {
         parent.pushStyle();
+        parent.textMode(MODEL);
         parent.textFont(font);
         parent.textSize(fontSize);
         parent.fill(fontColor);
@@ -159,6 +161,7 @@ public class GAxisLabel implements PConstants {
      */
     protected void drawAsTopLabel() {
         parent.pushStyle();
+        parent.textMode(MODEL);
         parent.textFont(font);
         parent.textSize(fontSize);
         parent.fill(fontColor);
@@ -184,6 +187,7 @@ public class GAxisLabel implements PConstants {
      */
     protected void drawAsRightLabel() {
         parent.pushStyle();
+        parent.textMode(MODEL);
         parent.textFont(font);
         parent.textSize(fontSize);
         parent.fill(fontColor);

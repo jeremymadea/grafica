@@ -147,7 +147,6 @@ public void setup(){
   mug.resize(int(0.7*mug.width), int(0.7*mug.height));
     
   star = loadShape("star.svg");
-  star.translate(-star.width/2, -star.height/2);
   star.disableStyle();
 }
 
