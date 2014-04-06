@@ -30,6 +30,8 @@ package grafica;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import processing.core.PVector;
+
 /**
  * Array of points class.
  * 
@@ -104,6 +106,79 @@ public class GPointsArray {
     }
 
     /**
+     * Constructor
+     * 
+     * @param x
+     *            the points x coordinates
+     * @param y
+     *            the points y coordinates
+     */
+    public GPointsArray(float[] x, float[] y) {
+        points = new ArrayList<GPoint>(x.length);
+
+        for (int i = 0; i < x.length; i++) {
+            points.add(new GPoint(x[i], y[i]));
+        }
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param vectors
+     *            an array of Processing vectors with the points x and y
+     *            coordinates
+     * @param labels
+     *            the points text labels
+     */
+    public GPointsArray(PVector[] vectors, String[] labels) {
+        points = new ArrayList<GPoint>(vectors.length);
+
+        for (int i = 0; i < vectors.length; i++) {
+            points.add(new GPoint(vectors[i], labels[i]));
+        }
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param vectors
+     *            an array of Processing vectors with the points x and y
+     *            coordinates
+     */
+    public GPointsArray(PVector[] vectors) {
+        points = new ArrayList<GPoint>(vectors.length);
+
+        for (int i = 0; i < vectors.length; i++) {
+            points.add(new GPoint(vectors[i]));
+        }
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param vectors
+     *            an arrayList of Processing vectors with the points x and y
+     *            coordinates
+     */
+    public GPointsArray(ArrayList<PVector> vectors) {
+        points = new ArrayList<GPoint>(vectors.size());
+
+        for (int i = 0; i < vectors.size(); i++) {
+            points.add(new GPoint(vectors.get(i)));
+        }
+    }
+
+    /**
+     * Adds a new point to the array
+     * 
+     * @param point
+     *            the point
+     */
+    public void add(GPoint point) {
+        points.add(new GPoint(point));
+    }
+
+    /**
      * Adds a new point to the array
      * 
      * @param x
@@ -126,17 +201,53 @@ public class GPointsArray {
      *            the point y coordinate
      */
     public void add(float x, float y) {
-        points.add(new GPoint(x, y, ""));
+        points.add(new GPoint(x, y));
     }
 
     /**
      * Adds a new point to the array
      * 
-     * @param point
-     *            the point
+     * @param v
+     *            the Processing vector with the point x and y coordinates
+     * @param label
+     *            the point text label
      */
-    public void add(GPoint point) {
-        points.add(new GPoint(point));
+    public void add(PVector v, String label) {
+        points.add(new GPoint(v, label));
+    }
+
+    /**
+     * Adds a new point to the array
+     * 
+     * @param v
+     *            the Processing vector with the point x and y coordinates
+     */
+    public void add(PVector v) {
+        points.add(new GPoint(v));
+    }
+
+    /**
+     * Adds a new set of points to the array
+     * 
+     * @param pts
+     *            the new set of points
+     */
+    public void add(GPoint[] pts) {
+        for (int i = 0; i < pts.length; i++) {
+            points.add(new GPoint(pts[i]));
+        }
+    }
+
+    /**
+     * Adds a new set of points to the array
+     * 
+     * @param pts
+     *            the new set of points
+     */
+    public void add(GPointsArray pts) {
+        for (int i = 0; i < pts.getNPoints(); i++) {
+            points.add(new GPoint(pts.get(i)));
+        }
     }
 
     /**
@@ -172,24 +283,38 @@ public class GPointsArray {
     /**
      * Adds a new set of points to the array
      * 
-     * @param pts
-     *            the new set of points
+     * @param vectors
+     *            the Processing vectors with the points x and y coordinates
+     * @param labels
+     *            the points text labels
      */
-    public void add(GPoint[] pts) {
-        for (int i = 0; i < pts.length; i++) {
-            points.add(new GPoint(pts[i]));
+    public void add(PVector[] vectors, String[] labels) {
+        for (int i = 0; i < vectors.length; i++) {
+            points.add(new GPoint(vectors[i], labels[i]));
         }
     }
 
     /**
      * Adds a new set of points to the array
      * 
-     * @param pts
-     *            the new set of points
+     * @param vectors
+     *            the Processing vectors with the points x and y coordinates
      */
-    public void add(GPointsArray pts) {
-        for (int i = 0; i < pts.getNPoints(); i++) {
-            points.add(new GPoint(pts.get(i)));
+    public void add(PVector[] vectors) {
+        for (int i = 0; i < vectors.length; i++) {
+            points.add(new GPoint(vectors[i]));
+        }
+    }
+
+    /**
+     * Adds a new set of points to the array
+     * 
+     * @param vectors
+     *            the Processing vectors with the points x and y coordinates
+     */
+    public void add(ArrayList<PVector> vectors) {
+        for (int i = 0; i < vectors.size(); i++) {
+            points.add(new GPoint(vectors.get(i)));
         }
     }
 
@@ -244,10 +369,10 @@ public class GPointsArray {
      *            the point to use
      */
     public void set(int i, GPoint point) {
-        if (i < points.size()) {
-            points.get(i).set(point);
-        } else if (i == points.size()) {
+        if (i == points.size()) {
             points.add(new GPoint(point));
+        } else {
+            points.get(i).set(point);
         }
     }
 
@@ -265,10 +390,29 @@ public class GPointsArray {
      *            the point new text label
      */
     public void set(int i, float x, float y, String label) {
-        if (i < points.size()) {
-            points.get(i).set(x, y, label);
-        } else if (i == points.size()) {
+        if (i == points.size()) {
             points.add(new GPoint(x, y, label));
+        } else {
+            points.get(i).set(x, y, label);
+        }
+    }
+
+    /**
+     * Sets the x and y coordinates of a specific point in the array
+     * 
+     * @param i
+     *            the point index. If the index equals the array size, it will
+     *            add a new point to the array.
+     * @param v
+     *            the Processing vector with the point new x and y coordinates
+     * @param label
+     *            the point new text label
+     */
+    public void set(int i, PVector v, String label) {
+        if (i == points.size()) {
+            points.add(new GPoint(v, label));
+        } else {
+            points.get(i).set(v, label);
         }
     }
 
@@ -308,6 +452,18 @@ public class GPointsArray {
      */
     public void setXY(int i, float x, float y) {
         points.get(i).setXY(x, y);
+    }
+
+    /**
+     * Sets the x and y coordinates of a specific point in the array
+     * 
+     * @param i
+     *            the point index
+     * @param v
+     *            the Processing vector with the point new x and y coordinates
+     */
+    public void setXY(int i, PVector v) {
+        points.get(i).setXY(v);
     }
 
     /**

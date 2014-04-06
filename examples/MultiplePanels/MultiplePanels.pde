@@ -76,43 +76,43 @@ void setup(){
   
   // Draw the plots
   plot1.beginDraw();
-    plot1.drawBox();
-    plot1.drawXAxis();
-    plot1.drawYAxis();
-    plot1.drawTopAxis();
-    plot1.drawRightAxis();
-    plot1.drawTitle();
-    plot1.drawPoints();
-    plot1.drawLines();
+  plot1.drawBox();
+  plot1.drawXAxis();
+  plot1.drawYAxis();
+  plot1.drawTopAxis();
+  plot1.drawRightAxis();
+  plot1.drawTitle();
+  plot1.drawPoints();
+  plot1.drawLines();
   plot1.endDraw();
 
   plot2.beginDraw();
-    plot2.drawBox();
-    plot2.drawXAxis();
-    plot2.drawYAxis();
-    plot2.drawTopAxis();
-    plot2.drawRightAxis();
-    plot2.drawPoints();
-    plot2.drawLines();
+  plot2.drawBox();
+  plot2.drawXAxis();
+  plot2.drawYAxis();
+  plot2.drawTopAxis();
+  plot2.drawRightAxis();
+  plot2.drawPoints();
+  plot2.drawLines();
   plot2.endDraw();
   
   plot3.beginDraw();
-    plot3.drawBox();
-    plot3.drawXAxis();
-    plot3.drawYAxis();
-    plot3.drawTopAxis();
-    plot3.drawRightAxis();
-    plot3.drawPoints();
-    plot3.drawLines();
+  plot3.drawBox();
+  plot3.drawXAxis();
+  plot3.drawYAxis();
+  plot3.drawTopAxis();
+  plot3.drawRightAxis();
+  plot3.drawPoints();
+  plot3.drawLines();
   plot3.endDraw();
 
   plot4.beginDraw();
-    plot4.drawBox();
-    plot4.drawXAxis();
-    plot4.drawYAxis();
-    plot4.drawTopAxis();
-    plot4.drawRightAxis();
-    plot4.drawPoints();
-    plot4.drawLines();
+  plot4.drawBox();
+  plot4.drawXAxis();
+  plot4.drawYAxis();
+  plot4.drawTopAxis();
+  plot4.drawRightAxis();
+  plot4.drawPoints();
+  plot4.drawLines();
   plot4.endDraw();
 }

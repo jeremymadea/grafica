@@ -335,6 +335,11 @@ public class GLayer implements PConstants {
                 plotPoints.set(i, xPlot, yPlot, points.getLabel(i));
             }
         }
+
+        // Remove the unused points
+        if (plotPoints.getNPoints() > nPoints) {
+            plotPoints.setNPoints(nPoints);
+        }
     }
 
     /**
@@ -1691,7 +1696,6 @@ public class GLayer implements PConstants {
             dim[0] = xDim;
             dim[1] = yDim;
             updatePlotPoints();
-            updateInsideList();
 
             if (hist != null) {
                 hist.setDim(xDim, yDim);
@@ -1955,6 +1959,114 @@ public class GLayer implements PConstants {
         points.set(newPoints);
         updatePlotPoints();
         updateInsideList();
+
+        if (hist != null) {
+            hist.setPlotPoints(plotPoints);
+        }
+    }
+
+    /**
+     * Sets one of the layer points
+     * 
+     * @param index
+     *            the point position
+     * @param x
+     *            the point new x coordinate
+     * @param y
+     *            the point new y coordinate
+     * @param label
+     *            the point new label
+     */
+    public void setPoint(int index, float x, float y, String label) {
+        points.set(index, x, y, label);
+        plotPoints.set(index, valueToXPlot(x), valueToYPlot(y), label);
+        inside.set(index, isInside(plotPoints.get(index)));
+
+        if (hist != null) {
+            hist.setPlotPoints(plotPoints);
+        }
+    }
+
+    /**
+     * Sets one of the layer points
+     * 
+     * @param index
+     *            the point position
+     * @param x
+     *            the point new x coordinate
+     * @param y
+     *            the point new y coordinate
+     */
+    public void setPoint(int index, float x, float y) {
+        setPoint(index, x, y, points.getLabel(index));
+    }
+
+    /**
+     * Sets one of the layer points
+     * 
+     * @param index
+     *            the point position
+     * @param newPoint
+     *            the new point
+     */
+    public void setPoint(int index, GPoint newPoint) {
+        setPoint(index, newPoint.getX(), newPoint.getY(), newPoint.getLabel());
+    }
+
+    /**
+     * Adds a new point to the layer points
+     * 
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     * @param label
+     *            the new point label
+     */
+    public void addPoint(float x, float y, String label) {
+        points.add(x, y, label);
+        plotPoints.add(valueToXPlot(x), valueToYPlot(y), label);
+        inside.add(isInside(plotPoints.getLastPoint()));
+
+        if (hist != null) {
+            hist.setPlotPoints(plotPoints);
+        }
+    }
+
+    /**
+     * Adds a new point to the layer points
+     * 
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     */
+    public void addPoint(float x, float y) {
+        addPoint(x, y, "");
+    }
+
+    /**
+     * Adds a new point to the layer points
+     * 
+     * @param newPoint
+     *            the point to add
+     */
+    public void addPoint(GPoint newPoint) {
+        addPoint(newPoint.getX(), newPoint.getY(), newPoint.getLabel());
+    }
+
+    /**
+     * Adds new points to the layer points
+     * 
+     * @param newPoints
+     *            the points to add
+     */
+    public void addPoints(GPointsArray newPoints) {
+        for (int i = 0; i < newPoints.getNPoints(); i++) {
+            points.add(newPoints.get(i));
+            plotPoints.add(valueToXPlot(newPoints.getX(i)), valueToYPlot(newPoints.getY(i)), newPoints.getLabel(i));
+            inside.add(isInside(plotPoints.getLastPoint()));
+        }
 
         if (hist != null) {
             hist.setPlotPoints(plotPoints);
@@ -2277,5 +2389,4 @@ public class GLayer implements PConstants {
     public GHistogram getHistogram() {
         return hist;
     }
-
 }

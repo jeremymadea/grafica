@@ -1955,6 +1955,115 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets one of the main layer points
+     * 
+     * @param index
+     *            the point position
+     * @param x
+     *            the point new x coordinate
+     * @param y
+     *            the point new y coordinate
+     * @param label
+     *            the point new label
+     */
+    public void setPoint(int index, float x, float y, String label) {
+        mainLayer.setPoint(index, x, y, label);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Sets one of the main layer points
+     * 
+     * @param index
+     *            the point position
+     * @param x
+     *            the point new x coordinate
+     * @param y
+     *            the point new y coordinate
+     */
+    public void setPoint(int index, float x, float y) {
+        mainLayer.setPoint(index, x, y);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Sets one of the main layer points
+     * 
+     * @param index
+     *            the point position
+     * @param newPoint
+     *            the new point
+     */
+    public void setPoint(int index, GPoint newPoint) {
+        mainLayer.setPoint(index, newPoint);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the main layer points
+     * 
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     * @param label
+     *            the new point label
+     */
+    public void addPoint(float x, float y, String label) {
+        mainLayer.addPoint(x, y, label);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the main layer points
+     * 
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     */
+    public void addPoint(float x, float y) {
+        mainLayer.addPoint(x, y);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the layer points
+     * 
+     * @param newPoint
+     *            the point to add
+     */
+    public void addPoint(GPoint newPoint) {
+        mainLayer.addPoint(newPoint);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Adds new points to the main layer points
+     * 
+     * @param newPoints
+     *            the points to add
+     */
+    public void addPoints(GPointsArray newPoints) {
+        mainLayer.addPoints(newPoints);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
      * Sets the points of one of the layers in the plot
      * 
      * @param points

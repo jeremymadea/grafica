@@ -27,6 +27,8 @@
 
 package grafica;
 
+import processing.core.PVector;
+
 /**
  * Point class. A GPoint is composed of two coordinates (x, y) and a text label
  * 
@@ -65,6 +67,28 @@ public class GPoint {
      */
     public GPoint(float x, float y) {
         this(x, y, "");
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param v
+     *            the Processing vector containing the point coordinates
+     * @param label
+     *            the text label
+     */
+    public GPoint(PVector v, String label) {
+        this(v.x, v.y, label);
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param v
+     *            the Processing vector containing the point coordinates
+     */
+    public GPoint(PVector v) {
+        this(v.x, v.y, "");
     }
 
     /**
@@ -117,6 +141,18 @@ public class GPoint {
     }
 
     /**
+     * Sets the point x and y coordinates and the label
+     * 
+     * @param v
+     *            the Processing vector with the new point coordinates
+     * @param newLabel
+     *            the new point text label
+     */
+    public void set(PVector v, String newLabel) {
+        set(v.x, v.y, newLabel);
+    }
+
+    /**
      * Sets the point x coordinate
      * 
      * @param newX
@@ -150,6 +186,16 @@ public class GPoint {
         x = newX;
         y = newY;
         valid = isValidNumber(x) && isValidNumber(y);
+    }
+
+    /**
+     * Sets the point x and y coordinates
+     * 
+     * @param v
+     *            the Processing vector with the new point coordinates
+     */
+    public void setXY(PVector v) {
+        setXY(v.x, v.y);
     }
 
     /**
@@ -206,5 +252,4 @@ public class GPoint {
     public boolean isValid() {
         return valid;
     }
-
 }

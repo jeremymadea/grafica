@@ -59,16 +59,16 @@ void draw(){
   
   // Draw the plot  
   plot.beginDraw();
-    plot.drawBox();
-    plot.drawXAxis();
-    plot.drawYAxis();
-    plot.drawTitle();
-    plot.drawGridLines(GPlot.VERTICAL);
-    plot.drawFilledContours(GPlot.HORIZONTAL, 0);
-    plot.drawLegend(new String[]{"Oktoberfest","Bundestagswahl"}, 
-                    new float[]{0.07,0.22}, 
-                    new float[]{0.92, 0.92});
-    plot.drawLabels();
+  plot.drawBox();
+  plot.drawXAxis();
+  plot.drawYAxis();
+  plot.drawTitle();
+  plot.drawGridLines(GPlot.VERTICAL);
+  plot.drawFilledContours(GPlot.HORIZONTAL, 0);
+  plot.drawLegend(new String[]{"Oktoberfest","Bundestagswahl"}, 
+                  new float[]{0.07,0.22}, 
+                  new float[]{0.92, 0.92});
+  plot.drawLabels();
   plot.endDraw();
 }  
 
