@@ -28,7 +28,6 @@
 package grafica;
 
 import java.util.ArrayList;
-
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PFont;
@@ -38,7 +37,7 @@ import processing.core.PShape;
 /**
  * Layer class. A GLayer usually contains an array of points and a histogram
  * 
- * @author Javier Gracia Carpio
+ * @author ##author##
  */
 public class GLayer implements PConstants {
     // The parent Processing applet
@@ -175,16 +174,12 @@ public class GLayer implements PConstants {
      * 
      * @return the x position in the plot reference system
      */
-    protected float valueToXPlot(float x) {
-        float xPlot;
-
+    public float valueToXPlot(float x) {
         if (xLog) {
-            xPlot = dim[0] * PApplet.log(x / xLim[0]) / PApplet.log(xLim[1] / xLim[0]);
+            return dim[0] * PApplet.log(x / xLim[0]) / PApplet.log(xLim[1] / xLim[0]);
         } else {
-            xPlot = dim[0] * (x - xLim[0]) / (xLim[1] - xLim[0]);
+            return dim[0] * (x - xLim[0]) / (xLim[1] - xLim[0]);
         }
-
-        return xPlot;
     }
 
     /**
@@ -195,16 +190,12 @@ public class GLayer implements PConstants {
      * 
      * @return the y position in the plot reference system
      */
-    protected float valueToYPlot(float y) {
-        float yPlot;
-
+    public float valueToYPlot(float y) {
         if (yLog) {
-            yPlot = -dim[1] * PApplet.log(y / yLim[0]) / PApplet.log(yLim[1] / yLim[0]);
+            return -dim[1] * PApplet.log(y / yLim[0]) / PApplet.log(yLim[1] / yLim[0]);
         } else {
-            yPlot = -dim[1] * (y - yLim[0]) / (yLim[1] - yLim[0]);
+            return -dim[1] * (y - yLim[0]) / (yLim[1] - yLim[0]);
         }
-
-        return yPlot;
     }
 
     /**
@@ -351,15 +342,11 @@ public class GLayer implements PConstants {
      * @return the x values at the xPlot position
      */
     protected float xPlotToValue(float xPlot) {
-        float x;
-
         if (xLog) {
-            x = PApplet.exp(PApplet.log(xLim[0]) + PApplet.log(xLim[1] / xLim[0]) * xPlot / dim[0]);
+            return PApplet.exp(PApplet.log(xLim[0]) + PApplet.log(xLim[1] / xLim[0]) * xPlot / dim[0]);
         } else {
-            x = xLim[0] + (xLim[1] - xLim[0]) * xPlot / dim[0];
+            return xLim[0] + (xLim[1] - xLim[0]) * xPlot / dim[0];
         }
-
-        return x;
     }
 
     /**
@@ -371,15 +358,11 @@ public class GLayer implements PConstants {
      * @return the y values at the yPlot position
      */
     protected float yPlotToValue(float yPlot) {
-        float y;
-
         if (yLog) {
-            y = PApplet.exp(PApplet.log(yLim[0]) - PApplet.log(yLim[1] / yLim[0]) * yPlot / dim[1]);
+            return PApplet.exp(PApplet.log(yLim[0]) - PApplet.log(yLim[1] / yLim[0]) * yPlot / dim[1]);
         } else {
-            y = yLim[0] - (yLim[1] - yLim[0]) * yPlot / dim[1];
+            return yLim[0] - (yLim[1] - yLim[0]) * yPlot / dim[1];
         }
-
-        return y;
     }
 
     /**
@@ -868,14 +851,15 @@ public class GLayer implements PConstants {
      *            point size in pixels
      */
     public void drawPoint(GPoint point, int pointColor, float pointSize) {
-        GPoint plotPoint = valueToPlot(point);
+        float xPlot = valueToXPlot(point.getX());
+        float yPlot = valueToYPlot(point.getY());
 
-        if (isInside(plotPoint)) {
+        if (isInside(xPlot, yPlot)) {
             parent.pushStyle();
             parent.ellipseMode(CENTER);
             parent.fill(pointColor);
             parent.noStroke();
-            parent.ellipse(plotPoint.getX(), plotPoint.getY(), pointSize, pointSize);
+            parent.ellipse(xPlot, yPlot, pointSize, pointSize);
             parent.popStyle();
         }
     }
@@ -899,13 +883,14 @@ public class GLayer implements PConstants {
      *            the shape that should be used to represent the point
      */
     public void drawPoint(GPoint point, PShape pointShape) {
-        GPoint plotPoint = valueToPlot(point);
+        float xPlot = valueToXPlot(point.getX());
+        float yPlot = valueToYPlot(point.getY());
 
         parent.pushStyle();
         parent.shapeMode(CENTER);
 
-        if (isInside(plotPoint)) {
-            parent.shape(pointShape, plotPoint.getX(), plotPoint.getY());
+        if (isInside(xPlot, yPlot)) {
+            parent.shape(pointShape, xPlot, yPlot);
         }
 
         parent.popStyle();
@@ -922,15 +907,16 @@ public class GLayer implements PConstants {
      *            color to use
      */
     public void drawPoint(GPoint point, PShape pointShape, int pointColor) {
-        GPoint plotPoint = valueToPlot(point);
+        float xPlot = valueToXPlot(point.getX());
+        float yPlot = valueToYPlot(point.getY());
 
-        if (isInside(plotPoint)) {
+        if (isInside(xPlot, yPlot)) {
             parent.pushStyle();
             parent.shapeMode(CENTER);
             parent.fill(pointColor);
             parent.stroke(pointColor);
             parent.strokeCap(SQUARE);
-            parent.shape(pointShape, plotPoint.getX(), plotPoint.getY());
+            parent.shape(pointShape, xPlot, yPlot);
             parent.popStyle();
         }
     }
@@ -944,13 +930,14 @@ public class GLayer implements PConstants {
      *            the image that should be used to represent the point
      */
     public void drawPoint(GPoint point, PImage pointImg) {
-        GPoint plotPoint = valueToPlot(point);
+        float xPlot = valueToXPlot(point.getX());
+        float yPlot = valueToYPlot(point.getY());
 
         parent.pushStyle();
         parent.imageMode(CENTER);
 
-        if (isInside(plotPoint)) {
-            parent.image(pointImg, plotPoint.getX(), plotPoint.getY());
+        if (isInside(xPlot, yPlot)) {
+            parent.image(pointImg, xPlot, yPlot);
         }
 
         parent.popStyle();
@@ -1501,11 +1488,12 @@ public class GLayer implements PConstants {
      *            the point
      */
     public void drawLabel(GPoint point) {
-        GPoint plotPoint = valueToPlot(point);
+        float xPlot = valueToXPlot(point.getX());
+        float yPlot = valueToYPlot(point.getY());
 
-        if (plotPoint.isValid()) {
-            float xLabelPos = plotPoint.getX() + labelSeparation[0];
-            float yLabelPos = plotPoint.getY() - labelSeparation[1];
+        if (isValidNumber(xPlot) && isValidNumber(yPlot)) {
+            float xLabelPos = xPlot + labelSeparation[0];
+            float yLabelPos = yPlot - labelSeparation[1];
             float delta = fontSize / 4;
 
             parent.pushStyle();
@@ -1570,12 +1558,11 @@ public class GLayer implements PConstants {
 
             // Create a temporal array with the points inside the plotting area
             // and the valid box cuts
-            boolean[] insidePolygon = isInside(plotPolygonPoints);
             int nPoints = plotPolygonPoints.getNPoints();
             GPointsArray tmp = new GPointsArray(2 * nPoints);
 
             for (int i = 0; i < nPoints; i++) {
-                if (insidePolygon[i]) {
+                if (isInside(plotPolygonPoints.get(i))) {
                     tmp.add(plotPolygonPoints.getX(i), plotPolygonPoints.getY(i), "normal point");
                 }
 
@@ -1983,7 +1970,7 @@ public class GLayer implements PConstants {
         inside.set(index, isInside(plotPoints.get(index)));
 
         if (hist != null) {
-            hist.setPlotPoints(plotPoints);
+            hist.setPlotPoint(index, plotPoints.get(index));
         }
     }
 
@@ -2029,7 +2016,7 @@ public class GLayer implements PConstants {
         inside.add(isInside(plotPoints.getLastPoint()));
 
         if (hist != null) {
-            hist.setPlotPoints(plotPoints);
+            hist.addPlotPoint(plotPoints.getLastPoint());
         }
     }
 
@@ -2070,6 +2057,22 @@ public class GLayer implements PConstants {
 
         if (hist != null) {
             hist.setPlotPoints(plotPoints);
+        }
+    }
+
+    /**
+     * Removes one of the layer points
+     * 
+     * @param index
+     *            the point position
+     */
+    public void removePoint(int index) {
+        points.remove(index);
+        plotPoints.remove(index);
+        inside.remove(index);
+
+        if (hist != null) {
+            hist.removePlotPoint(index);
         }
     }
 

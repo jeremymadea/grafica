@@ -29,7 +29,6 @@ package grafica;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PFont;
@@ -37,7 +36,7 @@ import processing.core.PFont;
 /**
  * Axis class.
  * 
- * @author Javier Gracia Carpio
+ * @author ##author##
  */
 public class GAxis implements PConstants {
     // The parent Processing applet
@@ -727,12 +726,15 @@ public class GAxis implements PConstants {
     /**
      * Sets the plot box dimensions information
      * 
-     * @param newDim
-     *            the new plot box dimensions information
+     * @param xDim
+     *            the new plot box x dimension
+     * @param yDim
+     *            the new plot box y dimension
      */
-    public void setDim(float[] newDim) {
-        if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
-            dim = newDim.clone();
+    public void setDim(float xDim, float yDim) {
+        if (xDim > 0 && yDim > 0) {
+            dim[0] = xDim;
+            dim[1] = yDim;
             plotTicks = valueToPlot(ticks);
             lab.setDim(dim);
         }
@@ -741,13 +743,11 @@ public class GAxis implements PConstants {
     /**
      * Sets the plot box dimensions information
      * 
-     * @param xDim
-     *            the new plot box x dimension
-     * @param yDim
-     *            the new plot box y dimension
+     * @param newDim
+     *            the new plot box dimensions information
      */
-    public void setDim(float xDim, float yDim) {
-        setDim(new float[] { xDim, yDim });
+    public void setDim(float[] newDim) {
+        setDim(newDim[0], newDim[1]);
     }
 
     /**
@@ -757,12 +757,13 @@ public class GAxis implements PConstants {
      *            the new axis limits
      */
     public void setLim(float[] newLim) {
-        if (newLim != null && newLim.length == 2 && newLim[1] != newLim[0]) {
+        if (newLim[1] != newLim[0]) {
             // Make sure the new limits makes sense
             if (log && (newLim[0] <= 0 || newLim[1] <= 0)) {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
-                lim = newLim.clone();
+                lim[0] = newLim[0];
+                lim[1] = newLim[1];
 
                 if (!fixedTicks) {
                     ticks = obtainTicks();
@@ -784,12 +785,13 @@ public class GAxis implements PConstants {
      *            the new axis scale
      */
     public void setLimAndLog(float[] newLim, boolean newLog) {
-        if (newLim != null && newLim.length == 2 && newLim[1] != newLim[0]) {
+        if (newLim[1] != newLim[0]) {
             // Make sure the new limits makes sense
             if (newLog && (newLim[0] <= 0 || newLim[1] <= 0)) {
                 PApplet.println("One of the limits is negative. This is not allowed in logarithmic scale.");
             } else {
-                lim = newLim.clone();
+                lim[0] = newLim[0];
+                lim[1] = newLim[1];
                 log = newLog;
 
                 if (!fixedTicks) {
@@ -925,7 +927,7 @@ public class GAxis implements PConstants {
      *            the new axis ticks labels
      */
     public void setTickLabels(String[] newTickLabels) {
-        if (newTickLabels != null && newTickLabels.length == tickLabels.length) {
+        if (newTickLabels.length == tickLabels.length) {
             fixedTicks = true;
             tickLabels = newTickLabels.clone();
         }
@@ -1156,5 +1158,4 @@ public class GAxis implements PConstants {
     public GAxisLabel getAxisLabel() {
         return lab;
     }
-
 }

@@ -32,7 +32,7 @@ import processing.core.PVector;
 /**
  * Point class. A GPoint is composed of two coordinates (x, y) and a text label
  * 
- * @author Javier Gracia Carpio
+ * @author ##author##
  */
 public class GPoint {
     protected float x;

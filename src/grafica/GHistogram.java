@@ -27,6 +27,7 @@
 
 package grafica;
 
+import java.util.ArrayList;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PFont;
@@ -34,7 +35,7 @@ import processing.core.PFont;
 /**
  * Histogram class.
  * 
- * @author Javier Gracia Carpio
+ * @author ##author##
  */
 public class GHistogram implements PConstants {
     // The parent Processing applet
@@ -44,20 +45,14 @@ public class GHistogram implements PConstants {
     protected int type;
     protected float[] dim;
     protected GPointsArray plotPoints;
+    protected boolean visible;
     protected float[] separations;
     protected int[] bgColors;
     protected int[] lineColors;
     protected float[] lineWidths;
-    protected boolean visible;
-
-    // Arrays
-    protected int nHistElements;
-    protected float[] histSeparations;
-    protected int[] histBgColors;
-    protected int[] histLineColors;
-    protected float[] histLineWidths;
-    protected float[] histLeftSides;
-    protected float[] histRightSides;
+    protected ArrayList<Float> differences;
+    protected ArrayList<Float> leftSides;
+    protected ArrayList<Float> rightSides;
 
     // Labels properties
     protected float labelsOffset;
@@ -87,31 +82,19 @@ public class GHistogram implements PConstants {
         this.type = (type == GPlot.VERTICAL || type == GPlot.HORIZONTAL) ? type : GPlot.VERTICAL;
         this.dim = dim.clone();
         this.plotPoints = new GPointsArray(plotPoints);
+        visible = true;
         separations = new float[] { 2 };
         bgColors = new int[] { this.parent.color(150, 150, 255) };
         lineColors = new int[] { this.parent.color(100, 100, 255) };
         lineWidths = new float[] { 1 };
-        visible = true;
 
-        nHistElements = this.plotPoints.getNPoints();
-        histSeparations = new float[nHistElements];
-        histBgColors = new int[nHistElements];
-        histLineColors = new int[nHistElements];
-        histLineWidths = new float[nHistElements];
-        histLeftSides = new float[nHistElements];
-        histRightSides = new float[nHistElements];
+        int nPoints = plotPoints.getNPoints();
+        differences = new ArrayList<Float>(nPoints);
+        leftSides = new ArrayList<Float>(nPoints);
+        rightSides = new ArrayList<Float>(nPoints);
+        initializeArrays(nPoints);
+        updateArrays();
 
-        // Fill the arrays
-        for (int i = 0; i < nHistElements; i++) {
-            histSeparations[i] = separations[i % separations.length];
-            histBgColors[i] = bgColors[i % bgColors.length];
-            histLineColors[i] = lineColors[i % lineColors.length];
-            histLineWidths[i] = lineWidths[i % lineWidths.length];
-        }
-
-        updateSides();
-
-        // Continue with the rest
         labelsOffset = 8;
         drawLabels = false;
         rotateLabels = false;
@@ -122,49 +105,63 @@ public class GHistogram implements PConstants {
     }
 
     /**
-     * Updates the left and right sides arrays
+     * Fills the differences, leftSides and rightSides arrays
      */
-    protected void updateSides() {
-        if (nHistElements == 1) {
-            histLeftSides[0] = (type == GPlot.VERTICAL) ? 0.2f * dim[0] : 0.2f * dim[1];
-            histRightSides[0] = histLeftSides[0];
-        } else if (nHistElements > 1) {
+    protected void initializeArrays(int nPoints) {
+        if (differences.size() < nPoints) {
+            for (int i = differences.size(); i < nPoints; i++) {
+                differences.add(0f);
+                leftSides.add(0f);
+                rightSides.add(0f);
+            }
+        } else {
+            differences.subList(nPoints, differences.size()).clear();
+        }
+    }
+
+    /**
+     * Updates the differences, leftSides and rightSides arrays
+     */
+    protected void updateArrays() {
+        int nPoints = plotPoints.getNPoints();
+
+        if (nPoints == 1) {
+            leftSides.set(0, (type == GPlot.VERTICAL) ? 0.2f * dim[0] : 0.2f * dim[1]);
+            rightSides.set(0, leftSides.get(0));
+        } else if (nPoints > 1) {
             // Calculate the differences between consecutive points
-            float[] differences = new float[nHistElements - 1];
+            for (int i = 0; i < nPoints - 1; i++) {
+                if (plotPoints.isValid(i) && plotPoints.isValid(i + 1)) {
+                    float separation = separations[i % separations.length];
+                    float diff;
 
-            if (type == GPlot.VERTICAL) {
-                for (int i = 0; i < nHistElements - 1; i++) {
-                    if (plotPoints.isValid(i) && plotPoints.isValid(i + 1)) {
-                        if (plotPoints.getX(i + 1) > plotPoints.getX(i)) {
-                            differences[i] = (plotPoints.getX(i + 1) - plotPoints.getX(i) - histSeparations[i]) / 2;
-                        } else {
-                            differences[i] = (plotPoints.getX(i + 1) - plotPoints.getX(i) + histSeparations[i]) / 2;
-                        }
+                    if (type == GPlot.VERTICAL) {
+                        diff = plotPoints.getX(i + 1) - plotPoints.getX(i);
+                    } else {
+                        diff = plotPoints.getY(i + 1) - plotPoints.getY(i);
                     }
-                }
-            } else {
-                for (int i = 0; i < nHistElements - 1; i++) {
-                    if (plotPoints.isValid(i) && plotPoints.isValid(i + 1)) {
-                        if (plotPoints.getY(i + 1) > plotPoints.getY(i)) {
-                            differences[i] = (plotPoints.getY(i + 1) - plotPoints.getY(i) - histSeparations[i]) / 2;
-                        } else {
-                            differences[i] = (plotPoints.getY(i + 1) - plotPoints.getY(i) + histSeparations[i]) / 2;
-                        }
+
+                    if (diff > 0) {
+                        differences.set(i, (diff - separation) / 2f);
+                    } else {
+                        differences.set(i, (diff + separation) / 2f);
                     }
+                } else {
+                    differences.set(i, 0f);
                 }
             }
 
-            // Fill the arrays
-            histLeftSides[0] = differences[0];
-            histRightSides[0] = differences[0];
+            // Fill the leftSides and rightSides arrays
+            leftSides.set(0, differences.get(0));
+            rightSides.set(0, differences.get(0));
 
-            for (int i = 1; i < nHistElements - 1; i++) {
-                histLeftSides[i] = differences[i - 1];
-                histRightSides[i] = differences[i];
+            for (int i = 1; i < nPoints - 1; i++) {
+                leftSides.set(i, differences.get(i - 1));
+                rightSides.set(i, differences.get(i));
             }
 
-            histLeftSides[nHistElements - 1] = differences[nHistElements - 2];
-            histRightSides[nHistElements - 1] = differences[nHistElements - 2];
+            leftSides.set(nPoints - 1, differences.get(nPoints - 2));
+            rightSides.set(nPoints - 1, differences.get(nPoints - 2));
         }
     }
 
@@ -175,7 +172,7 @@ public class GHistogram implements PConstants {
      *            the histogram base point in the plot reference system
      */
     public void draw(GPoint plotBasePoint) {
-        if (visible && plotBasePoint != null) {
+        if (visible) {
             // Calculate the baseline for the histogram
             float baseline = 0;
 
@@ -185,24 +182,24 @@ public class GHistogram implements PConstants {
 
             // Draw the rectangles
             parent.pushStyle();
-            parent.strokeCap(SQUARE);
             parent.rectMode(CORNERS);
+            parent.strokeCap(SQUARE);
 
-            for (int i = 0; i < nHistElements; i++) {
+            for (int i = 0; i < plotPoints.getNPoints(); i++) {
                 if (plotPoints.isValid(i)) {
                     // Obtain the corners
                     float x1, x2, y1, y2;
 
                     if (type == GPlot.VERTICAL) {
-                        x1 = plotPoints.getX(i) - histLeftSides[i];
-                        x2 = plotPoints.getX(i) + histRightSides[i];
+                        x1 = plotPoints.getX(i) - leftSides.get(i);
+                        x2 = plotPoints.getX(i) + rightSides.get(i);
                         y1 = plotPoints.getY(i);
                         y2 = baseline;
                     } else {
                         x1 = baseline;
                         x2 = plotPoints.getX(i);
-                        y1 = plotPoints.getY(i) - histLeftSides[i];
-                        y2 = plotPoints.getY(i) + histRightSides[i];
+                        y1 = plotPoints.getY(i) - leftSides.get(i);
+                        y2 = plotPoints.getY(i) + rightSides.get(i);
                     }
 
                     if (x1 < 0) {
@@ -230,11 +227,12 @@ public class GHistogram implements PConstants {
                     }
 
                     // Draw the rectangle
-                    parent.fill(histBgColors[i]);
-                    parent.stroke(histLineColors[i]);
-                    parent.strokeWeight(histLineWidths[i]);
+                    float lw = lineWidths[i % lineWidths.length];
+                    parent.fill(bgColors[i % bgColors.length]);
+                    parent.stroke(lineColors[i % lineColors.length]);
+                    parent.strokeWeight(lw);
 
-                    if (Math.abs(x2 - x1) > 2 * histLineWidths[i] && Math.abs(y2 - y1) > 2 * histLineWidths[i]) {
+                    if (Math.abs(x2 - x1) > 2 * lw && Math.abs(y2 - y1) > 2 * lw) {
                         parent.rect(x1, y1, x2, y2);
                     } else if ((type == GPlot.VERTICAL && x2 != x1 && !(y1 == y2 && (y1 == 0 || y1 == -dim[1])))
                             || (type == GPlot.HORIZONTAL && y2 != y1 && !(x1 == x2 && (x1 == 0 || x1 == dim[0])))) {
@@ -271,7 +269,7 @@ public class GHistogram implements PConstants {
             if (rotateLabels) {
                 parent.textAlign(RIGHT, CENTER);
 
-                for (int i = 0; i < nHistElements; i++) {
+                for (int i = 0; i < plotPoints.getNPoints(); i++) {
                     if (plotPoints.isValid(i) && plotPoints.getX(i) >= 0 && plotPoints.getX(i) <= dim[0]) {
                         parent.pushMatrix();
                         parent.translate(plotPoints.getX(i), labelsOffset);
@@ -283,7 +281,7 @@ public class GHistogram implements PConstants {
             } else {
                 parent.textAlign(CENTER, TOP);
 
-                for (int i = 0; i < nHistElements; i++) {
+                for (int i = 0; i < plotPoints.getNPoints(); i++) {
                     if (plotPoints.isValid(i) && plotPoints.getX(i) >= 0 && plotPoints.getX(i) <= dim[0]) {
                         parent.text(plotPoints.getLabel(i), plotPoints.getX(i), labelsOffset);
                     }
@@ -293,7 +291,7 @@ public class GHistogram implements PConstants {
             if (rotateLabels) {
                 parent.textAlign(CENTER, BOTTOM);
 
-                for (int i = 0; i < nHistElements; i++) {
+                for (int i = 0; i < plotPoints.getNPoints(); i++) {
                     if (plotPoints.isValid(i) && -plotPoints.getY(i) >= 0 && -plotPoints.getY(i) <= dim[1]) {
                         parent.pushMatrix();
                         parent.translate(-labelsOffset, plotPoints.getY(i));
@@ -305,7 +303,7 @@ public class GHistogram implements PConstants {
             } else {
                 parent.textAlign(RIGHT, CENTER);
 
-                for (int i = 0; i < nHistElements; i++) {
+                for (int i = 0; i < plotPoints.getNPoints(); i++) {
                     if (plotPoints.isValid(i) && -plotPoints.getY(i) >= 0 && -plotPoints.getY(i) <= dim[1]) {
                         parent.text(plotPoints.getLabel(i), -labelsOffset, plotPoints.getY(i));
                     }
@@ -325,20 +323,7 @@ public class GHistogram implements PConstants {
     public void setType(int newType) {
         if (newType != type && (newType == GPlot.VERTICAL || newType == GPlot.HORIZONTAL)) {
             type = newType;
-            updateSides();
-        }
-    }
-
-    /**
-     * Sets the plot box dimensions information
-     * 
-     * @param newDim
-     *            the new plot box dimensions information
-     */
-    public void setDim(float[] newDim) {
-        if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
-            dim = newDim.clone();
-            updateSides();
+            updateArrays();
         }
     }
 
@@ -351,40 +336,82 @@ public class GHistogram implements PConstants {
      *            the new plot box y dimension
      */
     public void setDim(float xDim, float yDim) {
-        setDim(new float[] { xDim, yDim });
+        if (xDim > 0 && yDim > 0) {
+            dim[0] = xDim;
+            dim[1] = yDim;
+            updateArrays();
+        }
     }
 
     /**
-     * Sets the point positions on the plot reference system
+     * Sets the plot box dimensions information
+     * 
+     * @param newDim
+     *            the new plot box dimensions information
+     */
+    public void setDim(float[] newDim) {
+        setDim(newDim[0], newDim[1]);
+    }
+
+    /**
+     * Sets the histogram plot points
      * 
      * @param newPlotPoints
      *            the new point positions in the plot reference system
      */
     public void setPlotPoints(GPointsArray newPlotPoints) {
-        if (newPlotPoints != null) {
-            plotPoints = new GPointsArray(newPlotPoints);
+        plotPoints.set(newPlotPoints);
+        initializeArrays(plotPoints.getNPoints());
+        updateArrays();
+    }
 
-            // Update the arrays
-            nHistElements = plotPoints.getNPoints();
+    /**
+     * Sets one of the histogram plot points
+     * 
+     * @param index
+     *            the point position
+     * @param newPlotPoint
+     *            the new point positions in the plot reference system
+     */
+    public void setPlotPoint(int index, GPoint newPlotPoint) {
+        plotPoints.set(index, newPlotPoint);
+        updateArrays();
+    }
 
-            if (nHistElements > histSeparations.length) {
-                histSeparations = new float[nHistElements];
-                histBgColors = new int[nHistElements];
-                histLineColors = new int[nHistElements];
-                histLineWidths = new float[nHistElements];
-                histLeftSides = new float[nHistElements];
-                histRightSides = new float[nHistElements];
+    /**
+     * Adds a new plot point to the histogram
+     * 
+     * @param newPlotPoint
+     *            the new point position in the plot reference system
+     */
+    public void addPlotPoint(GPoint newPlotPoint) {
+        plotPoints.add(newPlotPoint);
+        initializeArrays(plotPoints.getNPoints());
+        updateArrays();
+    }
 
-                for (int i = 0; i < nHistElements; i++) {
-                    histSeparations[i] = separations[i % separations.length];
-                    histBgColors[i] = bgColors[i % bgColors.length];
-                    histLineColors[i] = lineColors[i % lineColors.length];
-                    histLineWidths[i] = lineWidths[i % lineWidths.length];
-                }
-            }
+    /**
+     * Adds a new plot points to the histogram
+     * 
+     * @param newPlotPoints
+     *            the new points positions in the plot reference system
+     */
+    public void addPlotPoints(GPointsArray newPlotPoints) {
+        plotPoints.add(newPlotPoints);
+        initializeArrays(plotPoints.getNPoints());
+        updateArrays();
+    }
 
-            updateSides();
-        }
+    /**
+     * Removes one of the points from the histogram
+     * 
+     * @param index
+     *            the point position
+     */
+    public void removePlotPoint(int index) {
+        plotPoints.remove(index);
+        initializeArrays(plotPoints.getNPoints());
+        updateArrays();
     }
 
     /**
@@ -394,15 +421,8 @@ public class GHistogram implements PConstants {
      *            the new separations between the histogram elements
      */
     public void setSeparations(float[] newSeparations) {
-        if (newSeparations != null && newSeparations.length > 0) {
-            separations = newSeparations.clone();
-
-            for (int i = 0; i < histSeparations.length; i++) {
-                histSeparations[i] = separations[i % separations.length];
-            }
-
-            updateSides();
-        }
+        separations = newSeparations.clone();
+        updateArrays();
     }
 
     /**
@@ -412,13 +432,7 @@ public class GHistogram implements PConstants {
      *            the new background colors of the histogram elements
      */
     public void setBgColors(int[] newBgColors) {
-        if (newBgColors != null && newBgColors.length > 0) {
-            bgColors = newBgColors.clone();
-
-            for (int i = 0; i < histBgColors.length; i++) {
-                histBgColors[i] = bgColors[i % bgColors.length];
-            }
-        }
+        bgColors = newBgColors.clone();
     }
 
     /**
@@ -428,13 +442,7 @@ public class GHistogram implements PConstants {
      *            the new line colors of the histogram elements
      */
     public void setLineColors(int[] newLineColors) {
-        if (newLineColors != null && newLineColors.length > 0) {
-            lineColors = newLineColors.clone();
-
-            for (int i = 0; i < histLineColors.length; i++) {
-                histLineColors[i] = lineColors[i % lineColors.length];
-            }
-        }
+        lineColors = newLineColors.clone();
     }
 
     /**
@@ -444,17 +452,7 @@ public class GHistogram implements PConstants {
      *            the new line widths of the histogram elements
      */
     public void setLineWidths(float[] newLineWidths) {
-        if (newLineWidths != null && newLineWidths.length > 0) {
-            lineWidths = newLineWidths.clone();
-
-            for (int i = 0; i < histLineWidths.length; i++) {
-                histLineWidths[i] = lineWidths[i % lineWidths.length];
-
-                if (histLineWidths[i] < 0) {
-                    histLineWidths[i] = 0;
-                }
-            }
-        }
+        lineWidths = newLineWidths.clone();
     }
 
     /**
@@ -549,5 +547,4 @@ public class GHistogram implements PConstants {
             font = parent.createFont(fontName, fontSize);
         }
     }
-
 }

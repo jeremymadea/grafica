@@ -28,7 +28,6 @@
 package grafica;
 
 import java.util.ArrayList;
-
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
@@ -39,7 +38,7 @@ import processing.event.MouseEvent;
  * Plot class. It controls the rest of the graphical elements (layers, axes,
  * title, limits).
  * 
- * @author Javier Gracia Carpio
+ * @author ##author##
  */
 public class GPlot implements PConstants {
     // The parent Processing applet
@@ -81,6 +80,7 @@ public class GPlot implements PConstants {
     protected final GTitle title;
 
     // Constants
+    public static final String MAINLAYERID = "main layer";
     public static final int VERTICAL = 0;
     public static final int HORIZONTAL = 1;
     public static final int BOTH = 2;
@@ -120,12 +120,20 @@ public class GPlot implements PConstants {
      * 
      * @param parent
      *            the parent Processing applet
+     * @param xPos
+     *            the plot x position on the screen
+     * @param yPos
+     *            the plot y position on the screen
+     * @param plotWidth
+     *            the plot width (x outer dimension)
+     * @param plotHeight
+     *            the plot height (y outer dimension)
      */
-    public GPlot(PApplet parent) {
+    public GPlot(PApplet parent, float xPos, float yPos, float plotWidth, float plotHeight) {
         this.parent = parent;
 
-        pos = new float[] { 0, 0 };
-        outerDim = new float[] { 450, 300 };
+        pos = new float[] { xPos, yPos };
+        outerDim = new float[] { plotWidth, plotHeight };
         mar = new float[] { 60, 70, 40, 30 };
         dim = new float[] { outerDim[0] - mar[1] - mar[3], outerDim[1] - mar[0] - mar[2] };
         xLim = new float[] { 0, 1 };
@@ -146,7 +154,7 @@ public class GPlot implements PConstants {
         gridLineColor = this.parent.color(210);
         gridLineWidth = 1;
 
-        mainLayer = new GLayer(this.parent, "main layer", dim, xLim, yLim, xLog, yLog);
+        mainLayer = new GLayer(this.parent, MAINLAYERID, dim, xLim, yLim, xLog, yLog);
         layerList = new ArrayList<GLayer>();
 
         xAxis = new GAxis(this.parent, X, dim, xLim, xLog);
@@ -192,8 +200,7 @@ public class GPlot implements PConstants {
      *            the plot y position on the screen
      */
     public GPlot(PApplet parent, float xPos, float yPos) {
-        this(parent);
-        setPos(xPos, yPos);
+        this(parent, xPos, yPos, 450, 300);
     }
 
     /**
@@ -201,19 +208,9 @@ public class GPlot implements PConstants {
      * 
      * @param parent
      *            the parent Processing applet
-     * @param xPos
-     *            the plot x position on the screen
-     * @param yPos
-     *            the plot y position on the screen
-     * @param plotWidth
-     *            the plot width (x outer dimension)
-     * @param plotHeight
-     *            the plot height (y outer dimension)
      */
-    public GPlot(PApplet parent, float xPos, float yPos, float plotWidth, float plotHeight) {
-        this(parent);
-        setPos(xPos, yPos);
-        setOuterDim(plotWidth, plotHeight);
+    public GPlot(PApplet parent) {
+        this(parent, 0, 0, 450, 300);
     }
 
     /**
@@ -223,35 +220,33 @@ public class GPlot implements PConstants {
      *            the layer to add
      */
     public void addLayer(GLayer newLayer) {
-        if (newLayer != null) {
-            // Check that it is the only layer with that id
-            String id = newLayer.getId();
-            boolean sameId = false;
+        // Check that it is the only layer with that id
+        String id = newLayer.getId();
+        boolean sameId = false;
 
-            if (mainLayer.isId(id)) {
-                sameId = true;
-            } else {
-                for (int i = 0; i < layerList.size(); i++) {
-                    if (layerList.get(i).isId(id)) {
-                        sameId = true;
-                        break;
-                    }
+        if (mainLayer.isId(id)) {
+            sameId = true;
+        } else {
+            for (int i = 0; i < layerList.size(); i++) {
+                if (layerList.get(i).isId(id)) {
+                    sameId = true;
+                    break;
                 }
             }
+        }
 
-            // Add the layer to the list
-            if (!sameId) {
-                newLayer.setDim(dim);
-                newLayer.setLimAndLog(xLim, yLim, xLog, yLog);
-                layerList.add(newLayer);
+        // Add the layer to the list
+        if (!sameId) {
+            newLayer.setDim(dim);
+            newLayer.setLimAndLog(xLim, yLim, xLog, yLog);
+            layerList.add(newLayer);
 
-                // Calculate and update the new plot limits if necessary
-                if (includeAllLayersInLim) {
-                    updateLimits();
-                }
-            } else {
-                PApplet.println("A layer with the same id exists. Please change the id and try to add it again.");
+            // Calculate and update the new plot limits if necessary
+            if (includeAllLayersInLim) {
+                updateLimits();
             }
+        } else {
+            PApplet.println("A layer with the same id exists. Please change the id and try to add it again.");
         }
     }
 
@@ -353,10 +348,8 @@ public class GPlot implements PConstants {
      *         screen
      */
     public float[] getScreenPosAtValue(float xValue, float yValue) {
-        float[] plotPos = mainLayer.valueToPlot(xValue, yValue);
-
-        float xScreen = plotPos[0] + (pos[0] + mar[1]);
-        float yScreen = plotPos[1] + (pos[1] + mar[2] + dim[1]);
+        float xScreen = mainLayer.valueToXPlot(xValue) + (pos[0] + mar[1]);
+        float yScreen = mainLayer.valueToYPlot(yValue) + (pos[1] + mar[2] + dim[1]);
 
         return new float[] { xScreen, yScreen };
     }
@@ -630,27 +623,25 @@ public class GPlot implements PConstants {
         // Find the points limits
         float[] lim = new float[] { Float.MAX_VALUE, -Float.MAX_VALUE };
 
-        if (points != null) {
-            for (int i = 0; i < points.getNPoints(); i++) {
-                if (points.isValid(i)) {
-                    // Use the point if it's inside, and it's not negative if
-                    // the scale is logarithmic
-                    float x = points.getX(i);
-                    float y = points.getY(i);
-                    boolean isInside = true;
+        for (int i = 0; i < points.getNPoints(); i++) {
+            if (points.isValid(i)) {
+                // Use the point if it's inside, and it's not negative if
+                // the scale is logarithmic
+                float x = points.getX(i);
+                float y = points.getY(i);
+                boolean isInside = true;
 
-                    if (fixedYLim) {
-                        isInside = ((yLim[1] >= yLim[0]) && (y >= yLim[0]) && (y <= yLim[1]))
-                                || ((yLim[1] < yLim[0]) && (y <= yLim[0]) && (y >= yLim[1]));
+                if (fixedYLim) {
+                    isInside = ((yLim[1] >= yLim[0]) && (y >= yLim[0]) && (y <= yLim[1]))
+                            || ((yLim[1] < yLim[0]) && (y <= yLim[0]) && (y >= yLim[1]));
+                }
+
+                if (isInside && !(xLog && x <= 0)) {
+                    if (x < lim[0]) {
+                        lim[0] = x;
                     }
-
-                    if (isInside && !(xLog && x <= 0)) {
-                        if (x < lim[0]) {
-                            lim[0] = x;
-                        }
-                        if (x > lim[1]) {
-                            lim[1] = x;
-                        }
+                    if (x > lim[1]) {
+                        lim[1] = x;
                     }
                 }
             }
@@ -678,27 +669,25 @@ public class GPlot implements PConstants {
         // Find the points limits
         float[] lim = new float[] { Float.MAX_VALUE, -Float.MAX_VALUE };
 
-        if (points != null) {
-            for (int i = 0; i < points.getNPoints(); i++) {
-                if (points.isValid(i)) {
-                    // Use the point if it's inside, and it's not negative if
-                    // the scale is logarithmic
-                    float x = points.getX(i);
-                    float y = points.getY(i);
-                    boolean isInside = true;
+        for (int i = 0; i < points.getNPoints(); i++) {
+            if (points.isValid(i)) {
+                // Use the point if it's inside, and it's not negative if
+                // the scale is logarithmic
+                float x = points.getX(i);
+                float y = points.getY(i);
+                boolean isInside = true;
 
-                    if (fixedXLim) {
-                        isInside = ((xLim[1] >= xLim[0]) && (x >= xLim[0]) && (x <= xLim[1]))
-                                || ((xLim[1] < xLim[0]) && (x <= xLim[0]) && (x >= xLim[1]));
+                if (fixedXLim) {
+                    isInside = ((xLim[1] >= xLim[0]) && (x >= xLim[0]) && (x <= xLim[1]))
+                            || ((xLim[1] < xLim[0]) && (x <= xLim[0]) && (x >= xLim[1]));
+                }
+
+                if (isInside && !(yLog && y <= 0)) {
+                    if (y < lim[0]) {
+                        lim[0] = y;
                     }
-
-                    if (isInside && !(yLog && y <= 0)) {
-                        if (y < lim[0]) {
-                            lim[0] = y;
-                        }
-                        if (y > lim[1]) {
-                            lim[1] = y;
-                        }
+                    if (y > lim[1]) {
+                        lim[1] = y;
                     }
                 }
             }
@@ -1442,30 +1431,26 @@ public class GPlot implements PConstants {
      *            the plot y relative position for each layer in the plot
      */
     public void drawLegend(String[] text, float[] xRelativePos, float[] yRelativePos) {
-        if (text != null && xRelativePos != null && yRelativePos != null && text.length == xRelativePos.length
-                && xRelativePos.length == yRelativePos.length) {
-            parent.pushStyle();
-            parent.rectMode(CENTER);
-            parent.noStroke();
+        parent.pushStyle();
+        parent.rectMode(CENTER);
+        parent.noStroke();
 
-            for (int i = 0; i < text.length; i++) {
-                float[] plotPosition = new float[] { xRelativePos[i] * dim[0], -yRelativePos[i] * dim[1] };
-                float[] position = mainLayer.plotToValue(plotPosition[0], plotPosition[1]);
+        for (int i = 0; i < text.length; i++) {
+            float[] plotPosition = new float[] { xRelativePos[i] * dim[0], -yRelativePos[i] * dim[1] };
+            float[] position = mainLayer.plotToValue(plotPosition[0], plotPosition[1]);
 
-                if (i == 0) {
-                    parent.fill(mainLayer.getLineColor());
-                    parent.rect(plotPosition[0] - 15, plotPosition[1], 14, 14);
-                    mainLayer.drawAnnotation(text[i], position[0], position[1], LEFT, CENTER);
-                } else {
-                    parent.fill(layerList.get(i - 1).getLineColor());
-                    parent.rect(plotPosition[0] - 15, plotPosition[1], 14, 14);
-                    layerList.get(i - i).drawAnnotation(text[i], position[0], position[1], LEFT, CENTER);
-                }
+            if (i == 0) {
+                parent.fill(mainLayer.getLineColor());
+                parent.rect(plotPosition[0] - 15, plotPosition[1], 14, 14);
+                mainLayer.drawAnnotation(text[i], position[0], position[1], LEFT, CENTER);
+            } else {
+                parent.fill(layerList.get(i - 1).getLineColor());
+                parent.rect(plotPosition[0] - 15, plotPosition[1], 14, 14);
+                layerList.get(i - i).drawAnnotation(text[i], position[0], position[1], LEFT, CENTER);
             }
-
-            parent.popStyle();
         }
 
+        parent.popStyle();
     }
 
     /**
@@ -1945,13 +1930,27 @@ public class GPlot implements PConstants {
      *            the new points for the main layer
      */
     public void setPoints(GPointsArray points) {
-        if (points != null) {
-            // Add the points to the main layer
-            mainLayer.setPoints(points);
+        // Add the points to the main layer
+        mainLayer.setPoints(points);
 
-            // Update the plot limits
-            updateLimits();
-        }
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Sets the points for the specified layer
+     * 
+     * @param points
+     *            the new points for the main layer
+     * @param layerId
+     *            the layer id
+     */
+    public void setPoints(GPointsArray points, String layerId) {
+        // Add the points to the layer
+        getLayer(layerId).setPoints(points);
+
+        // Update the plot limits
+        updateLimits();
     }
 
     /**
@@ -1968,6 +1967,27 @@ public class GPlot implements PConstants {
      */
     public void setPoint(int index, float x, float y, String label) {
         mainLayer.setPoint(index, x, y, label);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Sets one of the specified layer points
+     * 
+     * @param index
+     *            the point position
+     * @param x
+     *            the point new x coordinate
+     * @param y
+     *            the point new y coordinate
+     * @param label
+     *            the point new label
+     * @param layerId
+     *            the layer id
+     */
+    public void setPoint(int index, float x, float y, String label, String layerId) {
+        getLayer(layerId).setPoint(index, x, y, label);
 
         // Update the plot limits
         updateLimits();
@@ -2006,6 +2026,23 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets one of the specified layer points
+     * 
+     * @param index
+     *            the point position
+     * @param newPoint
+     *            the new point
+     * @param layerId
+     *            the layer id
+     */
+    public void setPoint(int index, GPoint newPoint, String layerId) {
+        getLayer(layerId).setPoint(index, newPoint);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
      * Adds a new point to the main layer points
      * 
      * @param x
@@ -2017,6 +2054,25 @@ public class GPlot implements PConstants {
      */
     public void addPoint(float x, float y, String label) {
         mainLayer.addPoint(x, y, label);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the specified layer points
+     * 
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     * @param label
+     *            the new point label
+     * @param layerId
+     *            the layer id
+     */
+    public void addPoint(float x, float y, String label, String layerId) {
+        getLayer(layerId).addPoint(x, y, label);
 
         // Update the plot limits
         updateLimits();
@@ -2038,13 +2094,28 @@ public class GPlot implements PConstants {
     }
 
     /**
-     * Adds a new point to the layer points
+     * Adds a new point to the main layer points
      * 
      * @param newPoint
      *            the point to add
      */
     public void addPoint(GPoint newPoint) {
         mainLayer.addPoint(newPoint);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the specified layer points
+     * 
+     * @param newPoint
+     *            the point to add
+     * @param layerId
+     *            the layer id
+     */
+    public void addPoint(GPoint newPoint, String layerId) {
+        getLayer(layerId).addPoint(newPoint);
 
         // Update the plot limits
         updateLimits();
@@ -2064,25 +2135,46 @@ public class GPlot implements PConstants {
     }
 
     /**
-     * Sets the points of one of the layers in the plot
+     * Adds new points to the specified layer points
      * 
-     * @param points
-     *            the new points for the layer
-     * @param id
+     * @param newPoints
+     *            the points to add
+     * @param layerId
      *            the layer id
      */
-    public void setPoints(GPointsArray points, String id) {
-        if (mainLayer.isId(id)) {
-            setPoints(points);
-        } else if (points != null) {
-            GLayer l = getLayer(id);
-            l.setPoints(points);
+    public void addPoints(GPointsArray newPoints, String layerId) {
+        getLayer(layerId).addPoints(newPoints);
 
-            // Update the plot limits if necessary
-            if (includeAllLayersInLim) {
-                updateLimits();
-            }
-        }
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Removes one of the main layer points
+     * 
+     * @param index
+     *            the point position
+     */
+    public void removePoint(int index) {
+        mainLayer.removePoint(index);
+
+        // Update the plot limits
+        updateLimits();
+    }
+
+    /**
+     * Removes one of the specified layer points
+     * 
+     * @param index
+     *            the point position
+     * @param layerId
+     *            the layer id
+     */
+    public void removePoint(int index, String layerId) {
+        getLayer(layerId).removePoint(index);
+
+        // Update the plot limits
+        updateLimits();
     }
 
     /**
@@ -2561,6 +2653,18 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Returns a copy of the points of the specified layer
+     * 
+     * @param layerId
+     *            the layer id
+     * 
+     * @return a copy of the points of the specified layer
+     */
+    public GPointsArray getPoints(String layerId) {
+        return getLayer(layerId).getPoints();
+    }
+
+    /**
      * Returns the points of the main layer
      * 
      * @return the points of the main layer
@@ -2570,12 +2674,36 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Returns the points of the specified layer
+     * 
+     * @param layerId
+     *            the layer id
+     * 
+     * @return the points of the specified layer
+     */
+    public GPointsArray getPointsRef(String layerId) {
+        return getLayer(layerId).getPointsRef();
+    }
+
+    /**
      * Returns the histogram of the main layer
      * 
      * @return the histogram of the main layer
      */
     public GHistogram getHistogram() {
         return mainLayer.getHistogram();
+    }
+
+    /**
+     * Returns the histogram of the specified layer
+     * 
+     * @param layerId
+     *            the layer id
+     * 
+     * @return the histogram of the specified layer
+     */
+    public GHistogram getHistogram(String layerId) {
+        return getLayer(layerId).getHistogram();
     }
 
     /**

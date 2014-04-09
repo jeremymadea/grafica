@@ -34,7 +34,7 @@ import processing.core.PFont;
 /**
  * Title class.
  * 
- * @author Javier Gracia Carpio
+ * @author ##author##
  */
 public class GTitle implements PConstants {
     // The parent Processing applet
@@ -96,12 +96,15 @@ public class GTitle implements PConstants {
     /**
      * Sets the plot box dimensions information
      * 
-     * @param newDim
-     *            the new plot box dimensions information
+     * @param xDim
+     *            the new plot box x dimension
+     * @param yDim
+     *            the new plot box y dimension
      */
-    public void setDim(float[] newDim) {
-        if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
-            dim = newDim.clone();
+    public void setDim(float xDim, float yDim) {
+        if (xDim > 0 && yDim > 0) {
+            dim[0] = xDim;
+            dim[1] = yDim;
             plotPos = relativePos * dim[0];
         }
     }
@@ -109,13 +112,11 @@ public class GTitle implements PConstants {
     /**
      * Sets the plot box dimensions information
      * 
-     * @param xDim
-     *            the new plot box x dimension
-     * @param yDim
-     *            the new plot box y dimension
+     * @param newDim
+     *            the new plot box dimensions information
      */
-    public void setDim(float xDim, float yDim) {
-        setDim(new float[] { xDim, yDim });
+    public void setDim(float[] newDim) {
+        setDim(newDim[0], newDim[1]);
     }
 
     /**
@@ -213,5 +214,4 @@ public class GTitle implements PConstants {
             font = parent.createFont(fontName, fontSize);
         }
     }
-
 }

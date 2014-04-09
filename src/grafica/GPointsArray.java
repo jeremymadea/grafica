@@ -29,13 +29,12 @@ package grafica;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
 import processing.core.PVector;
 
 /**
  * Array of points class.
  * 
- * @author Javier Gracia Carpio
+ * @author ##author##
  */
 public class GPointsArray {
     protected ArrayList<GPoint> points;
@@ -319,6 +318,28 @@ public class GPointsArray {
     }
 
     /**
+     * Removes one of the points in the array
+     * 
+     * @param index
+     *            the point index.
+     */
+    public void remove(int index) {
+        points.remove(index);
+    }
+
+    /**
+     * Removes a range of points in the array
+     * 
+     * @param fromIndex
+     *            the lower point index.
+     * @param toIndex
+     *            the end point index.
+     */
+    public void removeRange(int fromIndex, int toIndex) {
+        points.subList(fromIndex, toIndex).clear();
+    }
+
+    /**
      * Removes invalid points from the array
      */
     public void removeInvalidPoints() {
@@ -362,24 +383,24 @@ public class GPointsArray {
      * Sets the x and y coordinates and the label of a point with those from
      * another point
      * 
-     * @param i
+     * @param index
      *            the point index. If the index equals the array size, it will
      *            add a new point to the array.
      * @param point
      *            the point to use
      */
-    public void set(int i, GPoint point) {
-        if (i == points.size()) {
+    public void set(int index, GPoint point) {
+        if (index == points.size()) {
             points.add(new GPoint(point));
         } else {
-            points.get(i).set(point);
+            points.get(index).set(point);
         }
     }
 
     /**
      * Sets the x and y coordinates of a specific point in the array
      * 
-     * @param i
+     * @param index
      *            the point index. If the index equals the array size, it will
      *            add a new point to the array.
      * @param x
@@ -389,18 +410,18 @@ public class GPointsArray {
      * @param label
      *            the point new text label
      */
-    public void set(int i, float x, float y, String label) {
-        if (i == points.size()) {
+    public void set(int index, float x, float y, String label) {
+        if (index == points.size()) {
             points.add(new GPoint(x, y, label));
         } else {
-            points.get(i).set(x, y, label);
+            points.get(index).set(x, y, label);
         }
     }
 
     /**
      * Sets the x and y coordinates of a specific point in the array
      * 
-     * @param i
+     * @param index
      *            the point index. If the index equals the array size, it will
      *            add a new point to the array.
      * @param v
@@ -408,74 +429,74 @@ public class GPointsArray {
      * @param label
      *            the point new text label
      */
-    public void set(int i, PVector v, String label) {
-        if (i == points.size()) {
+    public void set(int index, PVector v, String label) {
+        if (index == points.size()) {
             points.add(new GPoint(v, label));
         } else {
-            points.get(i).set(v, label);
+            points.get(index).set(v, label);
         }
     }
 
     /**
      * Sets the x coordinate of a specific point in the array
      * 
-     * @param i
+     * @param index
      *            the point index
      * @param x
      *            the point new x coordinate
      */
-    public void setX(int i, float x) {
-        points.get(i).setX(x);
+    public void setX(int index, float x) {
+        points.get(index).setX(x);
     }
 
     /**
      * Sets the y coordinate of a specific point in the array
      * 
-     * @param i
+     * @param index
      *            the point index
      * @param y
      *            the point new y coordinate
      */
-    public void setY(int i, float y) {
-        points.get(i).setY(y);
+    public void setY(int index, float y) {
+        points.get(index).setY(y);
     }
 
     /**
      * Sets the x and y coordinates of a specific point in the array
      * 
-     * @param i
+     * @param index
      *            the point index
      * @param x
      *            the point new x coordinate
      * @param y
      *            the point new y coordinate
      */
-    public void setXY(int i, float x, float y) {
-        points.get(i).setXY(x, y);
+    public void setXY(int index, float x, float y) {
+        points.get(index).setXY(x, y);
     }
 
     /**
      * Sets the x and y coordinates of a specific point in the array
      * 
-     * @param i
+     * @param index
      *            the point index
      * @param v
      *            the Processing vector with the point new x and y coordinates
      */
-    public void setXY(int i, PVector v) {
-        points.get(i).setXY(v);
+    public void setXY(int index, PVector v) {
+        points.get(index).setXY(v);
     }
 
     /**
      * Sets the text label of a specific point in the array
      * 
-     * @param i
+     * @param index
      *            the point index
      * @param label
      *            the point new text label
      */
-    public void setLabel(int i, String label) {
-        points.get(i).setLabel(label);
+    public void setLabel(int index, String label) {
+        points.get(index).setLabel(label);
     }
 
     /**
@@ -501,73 +522,73 @@ public class GPointsArray {
     /**
      * Returns a given point in the array
      * 
-     * @param i
+     * @param index
      *            the point index in the array
      * 
      * @return the point reference
      */
-    public GPoint get(int i) {
-        return points.get(i);
+    public GPoint get(int index) {
+        return points.get(index);
     }
 
     /**
      * Returns the x coordinate of a point in the array
      * 
-     * @param i
+     * @param index
      *            the point index in the array
      * 
      * @return the point x coordinate
      */
-    public float getX(int i) {
-        return points.get(i).getX();
+    public float getX(int index) {
+        return points.get(index).getX();
     }
 
     /**
      * Returns the y coordinate of a point in the array
      * 
-     * @param i
+     * @param index
      *            the point index in the array
      * 
      * @return the point y coordinate
      */
-    public float getY(int i) {
-        return points.get(i).getY();
+    public float getY(int index) {
+        return points.get(index).getY();
     }
 
     /**
      * Returns the text label of a point in the array
      * 
-     * @param i
+     * @param index
      *            the point index in the array
      * 
      * @return the point text label
      */
-    public String getLabel(int i) {
-        return points.get(i).getLabel();
+    public String getLabel(int index) {
+        return points.get(index).getLabel();
     }
 
     /**
      * Returns if a point in the array is valid or not
      * 
-     * @param i
+     * @param index
      *            the point index in the array
      * 
      * @return true if the point is valid
      */
-    public boolean getValid(int i) {
-        return points.get(i).getValid();
+    public boolean getValid(int index) {
+        return points.get(index).getValid();
     }
 
     /**
      * Returns if a point in the array is valid or not
      * 
-     * @param i
+     * @param index
      *            the point index in the array
      * 
      * @return true if the point is valid
      */
-    public boolean isValid(int i) {
-        return points.get(i).isValid();
+    public boolean isValid(int index) {
+        return points.get(index).isValid();
     }
 
     /**

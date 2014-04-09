@@ -34,7 +34,7 @@ import processing.core.PFont;
 /**
  * Axis label class.
  * 
- * @author Javier Gracia Carpio
+ * @author ##author##
  */
 public class GAxisLabel implements PConstants {
     // The parent Processing applet
@@ -127,6 +127,7 @@ public class GAxisLabel implements PConstants {
             parent.textAlign(textAlignment, TOP);
             parent.text(text, plotPos, offset);
         }
+
         parent.popStyle();
     }
 
@@ -153,6 +154,7 @@ public class GAxisLabel implements PConstants {
             parent.textAlign(RIGHT, CENTER);
             parent.text(text, -offset, plotPos);
         }
+
         parent.popStyle();
     }
 
@@ -179,6 +181,7 @@ public class GAxisLabel implements PConstants {
             parent.textAlign(textAlignment, BOTTOM);
             parent.text(text, plotPos, -offset - dim[1]);
         }
+
         parent.popStyle();
     }
 
@@ -205,20 +208,8 @@ public class GAxisLabel implements PConstants {
             parent.textAlign(LEFT, CENTER);
             parent.text(text, offset + dim[0], plotPos);
         }
-        parent.popStyle();
-    }
 
-    /**
-     * Sets the plot box dimensions information
-     * 
-     * @param newDim
-     *            the new plot box dimensions information
-     */
-    public void setDim(float[] newDim) {
-        if (newDim != null && newDim.length == 2 && newDim[0] > 0 && newDim[1] > 0) {
-            dim = newDim.clone();
-            plotPos = (type == X || type == TOP) ? relativePos * dim[0] : -relativePos * dim[1];
-        }
+        parent.popStyle();
     }
 
     /**
@@ -230,7 +221,21 @@ public class GAxisLabel implements PConstants {
      *            the new plot box y dimension
      */
     public void setDim(float xDim, float yDim) {
-        setDim(new float[] { xDim, yDim });
+        if (xDim > 0 && yDim > 0) {
+            dim[0] = xDim;
+            dim[1] = yDim;
+            plotPos = (type == X || type == TOP) ? relativePos * dim[0] : -relativePos * dim[1];
+        }
+    }
+
+    /**
+     * Sets the plot box dimensions information
+     * 
+     * @param newDim
+     *            the new plot box dimensions information
+     */
+    public void setDim(float[] newDim) {
+        setDim(newDim[0], newDim[1]);
     }
 
     /**
@@ -338,5 +343,4 @@ public class GAxisLabel implements PConstants {
             font = parent.createFont(fontName, fontSize);
         }
     }
-
 }
