@@ -1357,21 +1357,21 @@ public class GPlot implements PConstants {
         parent.strokeCap(SQUARE);
 
         if (gridType == BOTH || gridType == VERTICAL) {
-            float[] xPlotTicks = xAxis.getPlotTicksRef();
+            ArrayList<Float> xPlotTicks = xAxis.getPlotTicksRef();
 
-            for (int i = 0; i < xPlotTicks.length; i++) {
-                if (xPlotTicks[i] >= 0 && xPlotTicks[i] <= dim[0]) {
-                    parent.line(xPlotTicks[i], 0, xPlotTicks[i], -dim[1]);
+            for (int i = 0; i < xPlotTicks.size(); i++) {
+                if (xPlotTicks.get(i) >= 0 && xPlotTicks.get(i) <= dim[0]) {
+                    parent.line(xPlotTicks.get(i), 0, xPlotTicks.get(i), -dim[1]);
                 }
             }
         }
 
         if (gridType == BOTH || gridType == HORIZONTAL) {
-            float[] yPlotTicks = yAxis.getPlotTicksRef();
+            ArrayList<Float> yPlotTicks = yAxis.getPlotTicksRef();
 
-            for (int i = 0; i < yPlotTicks.length; i++) {
-                if (-yPlotTicks[i] >= 0 && -yPlotTicks[i] <= dim[1]) {
-                    parent.line(0, yPlotTicks[i], dim[0], yPlotTicks[i]);
+            for (int i = 0; i < yPlotTicks.size(); i++) {
+                if (-yPlotTicks.get(i) >= 0 && -yPlotTicks.get(i) <= dim[1]) {
+                    parent.line(0, yPlotTicks.get(i), dim[0], yPlotTicks.get(i));
                 }
             }
         }

@@ -28,6 +28,7 @@
 package grafica;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import processing.core.PApplet;
 import processing.core.PConstants;
@@ -56,10 +57,10 @@ public class GAxis implements PConstants {
     // Ticks properties
     protected int nTicks;
     protected float ticksSeparation;
-    protected float[] ticks;
-    protected float[] plotTicks;
-    protected boolean[] ticksInside;
-    protected String[] tickLabels;
+    protected ArrayList<Float> ticks;
+    protected ArrayList<Float> plotTicks;
+    protected ArrayList<Boolean> ticksInside;
+    protected ArrayList<String> tickLabels;
     protected boolean fixedTicks;
     protected float tickLength;
     protected float smallTickLength;
@@ -104,7 +105,14 @@ public class GAxis implements PConstants {
         if (this.log && (this.lim[0] <= 0 || this.lim[1] <= 0)) {
             PApplet.println("The limits are negative. This is not allowed in logarithmic scale.");
             PApplet.println("Will set them to (0.1, 10)");
-            this.lim = new float[] { 0.1f, 10 };
+
+            if (this.lim[1] > this.lim[0]) {
+                this.lim[0] = 0.1f;
+                this.lim[1] = 10f;
+            } else {
+                this.lim[0] = 10f;
+                this.lim[1] = 0.1f;
+            }
         }
 
         offset = 5;
@@ -113,10 +121,10 @@ public class GAxis implements PConstants {
 
         nTicks = 5;
         ticksSeparation = -1;
-        ticks = obtainTicks();
-        plotTicks = valueToPlot(ticks);
-        ticksInside = isInside(plotTicks);
-        tickLabels = obtainTickLabels(ticks);
+        ticks = new ArrayList<Float>(nTicks);
+        plotTicks = new ArrayList<Float>(nTicks);
+        ticksInside = new ArrayList<Boolean>(nTicks);
+        tickLabels = new ArrayList<String>(nTicks);
         fixedTicks = false;
         tickLength = 3;
         smallTickLength = 2;
@@ -132,6 +140,12 @@ public class GAxis implements PConstants {
         fontColor = this.parent.color(0);
         fontSize = 11;
         font = this.parent.createFont(fontName, fontSize);
+
+        // Update the arrayLists
+        updateTicks();
+        updatePlotTicks();
+        updateTicksInside();
+        updateTickLabels();
     }
 
     /**
@@ -162,58 +176,75 @@ public class GAxis implements PConstants {
     }
 
     /**
-     * Calculates the axis ticks
+     * Adapts the provided array list to the new size
      * 
-     * @return the axis ticks
+     * @param a
+     *            the array list
+     * @param n
+     *            the new size of the array
      */
-    protected float[] obtainTicks() {
+    protected void adaptSize(ArrayList<?> a, int n) {
+        if (n > a.size()) {
+            for (int i = a.size(); i < n; i++) {
+                a.add(null);
+            }
+        } else if (n < a.size()) {
+            a.subList(n, a.size()).clear();
+        }
+    }
+
+    /**
+     * Updates the axis ticks
+     */
+    protected void updateTicks() {
         if (log) {
-            return obtainLogarithmicTicks();
+            obtainLogarithmicTicks();
         } else {
-            return obtainLinearTicks();
+            obtainLinearTicks();
         }
     }
 
     /**
      * Calculates the axis ticks for the logarithmic scale
-     * 
-     * @return the axis ticks
      */
-    protected float[] obtainLogarithmicTicks() {
+    protected void obtainLogarithmicTicks() {
         // Get the exponents of the first and last ticks in increasing order
-        int firstExp = (lim[1] > lim[0]) ? PApplet.floor(PApplet.log(lim[0]) / GPlot.LOG10) : PApplet.floor(PApplet.log(lim[1])
-                / GPlot.LOG10);
-        int lastExp = (lim[1] > lim[0]) ? PApplet.ceil(PApplet.log(lim[1]) / GPlot.LOG10) : PApplet.ceil(PApplet.log(lim[0]) / GPlot.LOG10);
+        int firstExp, lastExp;
+
+        if (lim[1] > lim[0]) {
+            firstExp = PApplet.floor(PApplet.log(lim[0]) / GPlot.LOG10);
+            lastExp = PApplet.ceil(PApplet.log(lim[1]) / GPlot.LOG10);
+        } else {
+            firstExp = PApplet.floor(PApplet.log(lim[1]) / GPlot.LOG10);
+            lastExp = PApplet.ceil(PApplet.log(lim[0]) / GPlot.LOG10);
+        }
 
         // Calculate the ticks
-        float[] logarithmicTicks = new float[(lastExp - firstExp) * 9 + 1];
+        int n = (lastExp - firstExp) * 9 + 1;
+        adaptSize(ticks, n);
 
         for (int exp = firstExp; exp < lastExp; exp++) {
             float base = roundPlus(PApplet.exp(exp * GPlot.LOG10), -exp);
 
             for (int i = 0; i < 9; i++) {
-                logarithmicTicks[(exp - firstExp) * 9 + i] = (i + 1) * base;
+                ticks.set((exp - firstExp) * 9 + i, (i + 1) * base);
             }
         }
 
-        logarithmicTicks[logarithmicTicks.length - 1] = roundPlus(PApplet.exp(lastExp * GPlot.LOG10), -lastExp);
-
-        return logarithmicTicks;
+        ticks.set(ticks.size() - 1, roundPlus(PApplet.exp(lastExp * GPlot.LOG10), -lastExp));
     }
 
     /**
      * Calculates the axis ticks for the linear scale
-     * 
-     * @return the axis ticks
      */
-    protected float[] obtainLinearTicks() {
+    protected void obtainLinearTicks() {
         // Obtain the required precision for the ticks
         float step = 0;
         int sigDigits = 0;
         int nSteps = 0;
 
         if (ticksSeparation > 0) {
-            step = ticksSeparation;
+            step = (lim[1] > lim[0]) ? ticksSeparation : -ticksSeparation;
             sigDigits = obtainSigDigits(step);
 
             while (roundPlus(step, sigDigits) - step != 0) {
@@ -235,8 +266,6 @@ public class GAxis implements PConstants {
         }
 
         // Calculate the linear ticks
-        float[] linearTicks = new float[0];
-
         if (nSteps > 0) {
             // Obtain the first tick
             float firstTick = lim[0] + ((lim[1] - lim[0]) - nSteps * step) / 2;
@@ -249,27 +278,24 @@ public class GAxis implements PConstants {
             }
 
             // Calculate the rest of the ticks
-            linearTicks = new float[PApplet.floor(Math.abs((lim[1] - firstTick) / step)) + 1];
-            linearTicks[0] = firstTick;
+            int n = PApplet.floor(Math.abs((lim[1] - firstTick) / step)) + 1;
+            adaptSize(ticks, n);
+            ticks.set(0, firstTick);
 
-            for (int i = 1; i < linearTicks.length; i++) {
-                linearTicks[i] = roundPlus(linearTicks[i - 1] + step, sigDigits);
+            for (int i = 1; i < n; i++) {
+                ticks.set(i, roundPlus(ticks.get(i - 1) + step, sigDigits));
             }
+        } else {
+            ticks.clear();
         }
-
-        return linearTicks;
     }
 
     /**
-     * Calculates the positions of the axis ticks in the plot reference system
-     * 
-     * @param tks
-     *            the axis ticks
-     * 
-     * @return the positions of the axis ticks in the plot reference system
+     * Updates the positions of the axis ticks in the plot reference system
      */
-    protected float[] valueToPlot(float[] tks) {
-        float[] plotPos = new float[tks.length];
+    protected void updatePlotTicks() {
+        int n = ticks.size();
+        adaptSize(plotTicks, n);
         float scaleFactor;
 
         if (log) {
@@ -279,8 +305,8 @@ public class GAxis implements PConstants {
                 scaleFactor = -dim[1] / PApplet.log(lim[1] / lim[0]);
             }
 
-            for (int i = 0; i < plotPos.length; i++) {
-                plotPos[i] = PApplet.log(tks[i] / lim[0]) * scaleFactor;
+            for (int i = 0; i < n; i++) {
+                plotTicks.set(i, PApplet.log(ticks.get(i) / lim[0]) * scaleFactor);
             }
         } else {
             if (type == X || type == TOP) {
@@ -289,37 +315,70 @@ public class GAxis implements PConstants {
                 scaleFactor = -dim[1] / (lim[1] - lim[0]);
             }
 
-            for (int i = 0; i < plotPos.length; i++) {
-                plotPos[i] = (tks[i] - lim[0]) * scaleFactor;
+            for (int i = 0; i < n; i++) {
+                plotTicks.set(i, (ticks.get(i) - lim[0]) * scaleFactor);
             }
         }
-
-        return plotPos;
     }
 
     /**
-     * Checks which ticks are inside the axis limits
-     * 
-     * @param plotTks
-     *            the axis ticks positions in the plot reference system
-     * 
-     * @return a boolean array with the elements set to true if the tick is
-     *         inside the axis limits
+     * Updates the array that indicates which ticks are inside the axis limits
      */
-    protected boolean[] isInside(float[] plotTks) {
-        boolean[] insideCond = new boolean[plotTks.length];
+    protected void updateTicksInside() {
+        int n = ticks.size();
+        adaptSize(ticksInside, n);
 
         if (type == X || type == TOP) {
-            for (int i = 0; i < insideCond.length; i++) {
-                insideCond[i] = (plotTks[i] >= 0) && (plotTks[i] <= dim[0]);
+            for (int i = 0; i < n; i++) {
+                ticksInside.set(i, (plotTicks.get(i) >= 0) && (plotTicks.get(i) <= dim[0]));
             }
         } else {
-            for (int i = 0; i < insideCond.length; i++) {
-                insideCond[i] = (-plotTks[i] >= 0) && (-plotTks[i] <= dim[1]);
+            for (int i = 0; i < n; i++) {
+                ticksInside.set(i, (-plotTicks.get(i) >= 0) && (-plotTicks.get(i) <= dim[1]));
             }
         }
+    }
 
-        return insideCond;
+    /**
+     * Updates the axis tick labels
+     */
+    protected void updateTickLabels() {
+        int n = ticks.size();
+        adaptSize(tickLabels, n);
+
+        if (log) {
+            for (int i = 0; i < n; i++) {
+                float tick = ticks.get(i);
+
+                if (tick > 0) {
+                    float logValue = PApplet.log(tick) / GPlot.LOG10;
+                    boolean isExactLogValue = Math.abs(logValue - Math.round(logValue)) < 0.0001;
+
+                    if (isExactLogValue) {
+                        logValue = Math.round(logValue);
+
+                        if (expTickLabels) {
+                            tickLabels.set(i, "1e" + (int) logValue);
+                        } else {
+                            if (logValue > -3.1 && logValue < 3.1) {
+                                tickLabels.set(i, (logValue >= 0) ? PApplet.str((int) tick) : PApplet.str(tick));
+                            } else {
+                                tickLabels.set(i, "1e" + (int) logValue);
+                            }
+                        }
+                    } else {
+                        tickLabels.set(i, "");
+                    }
+                } else {
+                    tickLabels.set(i, "");
+                }
+            }
+        } else {
+            for (int i = 0; i < n; i++) {
+                float tick = ticks.get(i);
+                tickLabels.set(i, (tick % 1 == 0 && Math.abs(tick) < 1e9) ? PApplet.str((int) tick) : PApplet.str(tick));
+            }
+        }
     }
 
     /**
@@ -328,12 +387,12 @@ public class GAxis implements PConstants {
      * @return the ticks that are inside the axis limits
      */
     protected float[] removeOutsideTicks() {
-        float[] validTicks = new float[ticksInside.length];
+        float[] validTicks = new float[ticksInside.size()];
         int counter = 0;
 
-        for (int i = 0; i < ticksInside.length; i++) {
-            if (ticksInside[i]) {
-                validTicks[counter] = ticks[i];
+        for (int i = 0; i < ticksInside.size(); i++) {
+            if (ticksInside.get(i)) {
+                validTicks[counter] = ticks.get(i);
                 counter++;
             }
         }
@@ -349,62 +408,17 @@ public class GAxis implements PConstants {
      *         limits
      */
     protected float[] removeOutsidePlotTicks() {
-        float[] validPlotTicks = new float[ticksInside.length];
+        float[] validPlotTicks = new float[ticksInside.size()];
         int counter = 0;
 
-        for (int i = 0; i < ticksInside.length; i++) {
-            if (ticksInside[i]) {
-                validPlotTicks[counter] = plotTicks[i];
+        for (int i = 0; i < ticksInside.size(); i++) {
+            if (ticksInside.get(i)) {
+                validPlotTicks[counter] = plotTicks.get(i);
                 counter++;
             }
         }
 
         return Arrays.copyOf(validPlotTicks, counter);
-    }
-
-    /**
-     * Obtains the axis tick labels
-     * 
-     * @param tks
-     *            the axis ticks
-     * 
-     * @return the axis tick labels
-     */
-    protected String[] obtainTickLabels(float[] tks) {
-        String[] labels = new String[tks.length];
-
-        if (log) {
-            for (int i = 0; i < labels.length; i++) {
-                if (tks[i] > 0) {
-                    float logValue = PApplet.log(tks[i]) / GPlot.LOG10;
-                    boolean isExactLogValue = Math.abs(logValue - Math.round(logValue)) < 0.0001;
-
-                    if (isExactLogValue) {
-                        logValue = Math.round(logValue);
-
-                        if (expTickLabels) {
-                            labels[i] = "1e" + (int) logValue;
-                        } else {
-                            if (logValue > -3.1 && logValue < 3.1) {
-                                labels[i] = (logValue >= 0) ? PApplet.str((int) tks[i]) : PApplet.str(tks[i]);
-                            } else {
-                                labels[i] = "1e" + (int) logValue;
-                            }
-                        }
-                    } else {
-                        labels[i] = "";
-                    }
-                } else {
-                    labels[i] = "";
-                }
-            }
-        } else {
-            for (int i = 0; i < labels.length; i++) {
-                labels[i] = (tks[i] % 1 == 0 && Math.abs(tks[i]) < 1e9) ? PApplet.str((int) tks[i]) : PApplet.str(tks[i]);
-            }
-        }
-
-        return labels;
     }
 
     /**
@@ -414,37 +428,40 @@ public class GAxis implements PConstants {
      *            the new axis limits
      */
     public void moveLim(float[] newLim) {
-        if (newLim != null && newLim.length == 2 && newLim[1] != newLim[0]) {
+        if (newLim[1] != newLim[0]) {
             // Check that the new limit makes sense
             if (log && (newLim[0] <= 0 || newLim[1] <= 0)) {
                 PApplet.println("The limits are negative. This is not allowed in logarithmic scale.");
             } else {
-                lim = newLim.clone();
+                lim[0] = newLim[0];
+                lim[1] = newLim[1];
 
                 // Calculate the new ticks if they are not fixed
                 if (!fixedTicks) {
+                    int n = ticks.size();
+
                     if (log) {
-                        ticks = obtainLogarithmicTicks();
-                    } else if (ticks.length > 0) {
+                        obtainLogarithmicTicks();
+                    } else if (n > 0) {
                         // Obtain the ticks precision and the tick separation
                         float step = 0;
                         int sigDigits = 0;
 
                         if (ticksSeparation > 0) {
-                            step = ticksSeparation;
+                            step = (lim[1] > lim[0]) ? ticksSeparation : -ticksSeparation;
                             sigDigits = obtainSigDigits(step);
 
                             while (roundPlus(step, sigDigits) - step != 0) {
                                 sigDigits++;
                             }
                         } else {
-                            step = (ticks.length == 1) ? lim[1] - lim[0] : ticks[1] - ticks[0];
+                            step = (n == 1) ? lim[1] - lim[0] : ticks.get(1) - ticks.get(0);
                             sigDigits = obtainSigDigits(step);
                             step = roundPlus(step, sigDigits);
 
                             if (step == 0 || Math.abs(step) > Math.abs(lim[1] - lim[0])) {
                                 sigDigits++;
-                                step = (ticks.length == 1) ? lim[1] - lim[0] : ticks[1] - ticks[0];
+                                step = (n == 1) ? lim[1] - lim[0] : ticks.get(1) - ticks.get(0);
                                 step = roundPlus(step, sigDigits);
                             }
 
@@ -452,30 +469,31 @@ public class GAxis implements PConstants {
                         }
 
                         // Obtain the first tick
-                        float firstTick = ticks[0] + step * PApplet.ceil((lim[0] - ticks[0]) / step);
+                        float firstTick = ticks.get(0) + step * PApplet.ceil((lim[0] - ticks.get(0)) / step);
                         firstTick = roundPlus(firstTick, sigDigits);
 
                         if ((lim[1] - firstTick) * (lim[0] - firstTick) > 0) {
-                            firstTick = ticks[0] + step * PApplet.floor((lim[0] - ticks[0]) / step);
+                            firstTick = ticks.get(0) + step * PApplet.floor((lim[0] - ticks.get(0)) / step);
                             firstTick = roundPlus(firstTick, sigDigits);
                         }
 
                         // Calculate the rest of the ticks
-                        ticks = new float[PApplet.floor(Math.abs((lim[1] - firstTick) / step)) + 1];
-                        ticks[0] = firstTick;
+                        n = PApplet.floor(Math.abs((lim[1] - firstTick) / step)) + 1;
+                        adaptSize(ticks, n);
+                        ticks.set(0, firstTick);
 
-                        for (int i = 1; i < ticks.length; i++) {
-                            ticks[i] = roundPlus(ticks[i - 1] + step, sigDigits);
+                        for (int i = 1; i < n; i++) {
+                            ticks.set(i, roundPlus(ticks.get(i - 1) + step, sigDigits));
                         }
                     }
 
                     // Obtain the new tick labels
-                    tickLabels = obtainTickLabels(ticks);
+                    updateTickLabels();
                 }
 
                 // Update the rest of the arrays
-                plotTicks = valueToPlot(ticks);
-                ticksInside = isInside(plotTicks);
+                updatePlotTicks();
+                updateTicksInside();
             }
         }
     }
@@ -519,12 +537,12 @@ public class GAxis implements PConstants {
         // Draw the ticks
         parent.line(0, offset, dim[0], offset);
 
-        for (int i = 0; i < plotTicks.length; i++) {
-            if (ticksInside[i]) {
-                if (log && tickLabels[i].equals("")) {
-                    parent.line(plotTicks[i], offset, plotTicks[i], offset + smallTickLength);
+        for (int i = 0; i < plotTicks.size(); i++) {
+            if (ticksInside.get(i)) {
+                if (log && tickLabels.get(i).equals("")) {
+                    parent.line(plotTicks.get(i), offset, plotTicks.get(i), offset + smallTickLength);
                 } else {
-                    parent.line(plotTicks[i], offset, plotTicks[i], offset + tickLength);
+                    parent.line(plotTicks.get(i), offset, plotTicks.get(i), offset + tickLength);
                 }
             }
         }
@@ -534,25 +552,26 @@ public class GAxis implements PConstants {
             if (rotateTickLabels) {
                 parent.textAlign(RIGHT, CENTER);
 
-                for (int i = 0; i < plotTicks.length; i++) {
-                    if (ticksInside[i] && !tickLabels[i].equals("")) {
+                for (int i = 0; i < plotTicks.size(); i++) {
+                    if (ticksInside.get(i) && !tickLabels.get(i).equals("")) {
                         parent.pushMatrix();
-                        parent.translate(plotTicks[i], offset + tickLabelOffset);
+                        parent.translate(plotTicks.get(i), offset + tickLabelOffset);
                         parent.rotate(-HALF_PI);
-                        parent.text(tickLabels[i], 0, 0);
+                        parent.text(tickLabels.get(i), 0, 0);
                         parent.popMatrix();
                     }
                 }
             } else {
                 parent.textAlign(CENTER, TOP);
 
-                for (int i = 0; i < plotTicks.length; i++) {
-                    if (ticksInside[i] && !tickLabels[i].equals("")) {
-                        parent.text(tickLabels[i], plotTicks[i], offset + tickLabelOffset);
+                for (int i = 0; i < plotTicks.size(); i++) {
+                    if (ticksInside.get(i) && !tickLabels.get(i).equals("")) {
+                        parent.text(tickLabels.get(i), plotTicks.get(i), offset + tickLabelOffset);
                     }
                 }
             }
         }
+
         parent.popStyle();
     }
 
@@ -572,12 +591,12 @@ public class GAxis implements PConstants {
         // Draw the ticks
         parent.line(-offset, 0, -offset, -dim[1]);
 
-        for (int i = 0; i < plotTicks.length; i++) {
-            if (ticksInside[i]) {
-                if (log && tickLabels[i].equals("")) {
-                    parent.line(-offset, plotTicks[i], -offset - smallTickLength, plotTicks[i]);
+        for (int i = 0; i < plotTicks.size(); i++) {
+            if (ticksInside.get(i)) {
+                if (log && tickLabels.get(i).equals("")) {
+                    parent.line(-offset, plotTicks.get(i), -offset - smallTickLength, plotTicks.get(i));
                 } else {
-                    parent.line(-offset, plotTicks[i], -offset - tickLength, plotTicks[i]);
+                    parent.line(-offset, plotTicks.get(i), -offset - tickLength, plotTicks.get(i));
                 }
             }
         }
@@ -587,25 +606,26 @@ public class GAxis implements PConstants {
             if (rotateTickLabels) {
                 parent.textAlign(CENTER, BOTTOM);
 
-                for (int i = 0; i < plotTicks.length; i++) {
-                    if (ticksInside[i] && !tickLabels[i].equals("")) {
+                for (int i = 0; i < plotTicks.size(); i++) {
+                    if (ticksInside.get(i) && !tickLabels.get(i).equals("")) {
                         parent.pushMatrix();
-                        parent.translate(-offset - tickLabelOffset, plotTicks[i]);
+                        parent.translate(-offset - tickLabelOffset, plotTicks.get(i));
                         parent.rotate(-HALF_PI);
-                        parent.text(tickLabels[i], 0, 0);
+                        parent.text(tickLabels.get(i), 0, 0);
                         parent.popMatrix();
                     }
                 }
             } else {
                 parent.textAlign(RIGHT, CENTER);
 
-                for (int i = 0; i < plotTicks.length; i++) {
-                    if (ticksInside[i] && !tickLabels[i].equals("")) {
-                        parent.text(tickLabels[i], -offset - tickLabelOffset, plotTicks[i]);
+                for (int i = 0; i < plotTicks.size(); i++) {
+                    if (ticksInside.get(i) && !tickLabels.get(i).equals("")) {
+                        parent.text(tickLabels.get(i), -offset - tickLabelOffset, plotTicks.get(i));
                     }
                 }
             }
         }
+
         parent.popStyle();
     }
 
@@ -628,12 +648,12 @@ public class GAxis implements PConstants {
         // Draw the ticks
         parent.line(0, -offset, dim[0], -offset);
 
-        for (int i = 0; i < plotTicks.length; i++) {
-            if (ticksInside[i]) {
-                if (log && tickLabels[i].equals("")) {
-                    parent.line(plotTicks[i], -offset, plotTicks[i], -offset - smallTickLength);
+        for (int i = 0; i < plotTicks.size(); i++) {
+            if (ticksInside.get(i)) {
+                if (log && tickLabels.get(i).equals("")) {
+                    parent.line(plotTicks.get(i), -offset, plotTicks.get(i), -offset - smallTickLength);
                 } else {
-                    parent.line(plotTicks[i], -offset, plotTicks[i], -offset - tickLength);
+                    parent.line(plotTicks.get(i), -offset, plotTicks.get(i), -offset - tickLength);
                 }
             }
         }
@@ -643,25 +663,26 @@ public class GAxis implements PConstants {
             if (rotateTickLabels) {
                 parent.textAlign(LEFT, CENTER);
 
-                for (int i = 0; i < plotTicks.length; i++) {
-                    if (ticksInside[i] && !tickLabels[i].equals("")) {
+                for (int i = 0; i < plotTicks.size(); i++) {
+                    if (ticksInside.get(i) && !tickLabels.get(i).equals("")) {
                         parent.pushMatrix();
-                        parent.translate(plotTicks[i], -offset - tickLabelOffset);
+                        parent.translate(plotTicks.get(i), -offset - tickLabelOffset);
                         parent.rotate(-HALF_PI);
-                        parent.text(tickLabels[i], 0, 0);
+                        parent.text(tickLabels.get(i), 0, 0);
                         parent.popMatrix();
                     }
                 }
             } else {
                 parent.textAlign(CENTER, BOTTOM);
 
-                for (int i = 0; i < plotTicks.length; i++) {
-                    if (ticksInside[i] && !tickLabels[i].equals("")) {
-                        parent.text(tickLabels[i], plotTicks[i], -offset - tickLabelOffset);
+                for (int i = 0; i < plotTicks.size(); i++) {
+                    if (ticksInside.get(i) && !tickLabels.get(i).equals("")) {
+                        parent.text(tickLabels.get(i), plotTicks.get(i), -offset - tickLabelOffset);
                     }
                 }
             }
         }
+
         parent.popMatrix();
         parent.popStyle();
     }
@@ -685,12 +706,12 @@ public class GAxis implements PConstants {
         // Draw the ticks
         parent.line(offset, 0, offset, -dim[1]);
 
-        for (int i = 0; i < plotTicks.length; i++) {
-            if (ticksInside[i]) {
-                if (log && tickLabels[i].equals("")) {
-                    parent.line(offset, plotTicks[i], offset + smallTickLength, plotTicks[i]);
+        for (int i = 0; i < plotTicks.size(); i++) {
+            if (ticksInside.get(i)) {
+                if (log && tickLabels.get(i).equals("")) {
+                    parent.line(offset, plotTicks.get(i), offset + smallTickLength, plotTicks.get(i));
                 } else {
-                    parent.line(offset, plotTicks[i], offset + tickLength, plotTicks[i]);
+                    parent.line(offset, plotTicks.get(i), offset + tickLength, plotTicks.get(i));
                 }
             }
         }
@@ -700,25 +721,26 @@ public class GAxis implements PConstants {
             if (rotateTickLabels) {
                 parent.textAlign(CENTER, TOP);
 
-                for (int i = 0; i < plotTicks.length; i++) {
-                    if (ticksInside[i] && !tickLabels[i].equals("")) {
+                for (int i = 0; i < plotTicks.size(); i++) {
+                    if (ticksInside.get(i) && !tickLabels.get(i).equals("")) {
                         parent.pushMatrix();
-                        parent.translate(offset + tickLabelOffset, plotTicks[i]);
+                        parent.translate(offset + tickLabelOffset, plotTicks.get(i));
                         parent.rotate(-HALF_PI);
-                        parent.text(tickLabels[i], 0, 0);
+                        parent.text(tickLabels.get(i), 0, 0);
                         parent.popMatrix();
                     }
                 }
             } else {
                 parent.textAlign(LEFT, CENTER);
 
-                for (int i = 0; i < plotTicks.length; i++) {
-                    if (ticksInside[i] && !tickLabels[i].equals("")) {
-                        parent.text(tickLabels[i], offset + tickLabelOffset, plotTicks[i]);
+                for (int i = 0; i < plotTicks.size(); i++) {
+                    if (ticksInside.get(i) && !tickLabels.get(i).equals("")) {
+                        parent.text(tickLabels.get(i), offset + tickLabelOffset, plotTicks.get(i));
                     }
                 }
             }
         }
+
         parent.popMatrix();
         parent.popStyle();
     }
@@ -735,7 +757,7 @@ public class GAxis implements PConstants {
         if (xDim > 0 && yDim > 0) {
             dim[0] = xDim;
             dim[1] = yDim;
-            plotTicks = valueToPlot(ticks);
+            updatePlotTicks();
             lab.setDim(dim);
         }
     }
@@ -766,12 +788,12 @@ public class GAxis implements PConstants {
                 lim[1] = newLim[1];
 
                 if (!fixedTicks) {
-                    ticks = obtainTicks();
-                    tickLabels = obtainTickLabels(ticks);
+                    updateTicks();
+                    updateTickLabels();
                 }
 
-                plotTicks = valueToPlot(ticks);
-                ticksInside = isInside(plotTicks);
+                updatePlotTicks();
+                updateTicksInside();
             }
         }
     }
@@ -795,12 +817,12 @@ public class GAxis implements PConstants {
                 log = newLog;
 
                 if (!fixedTicks) {
-                    ticks = obtainTicks();
-                    tickLabels = obtainTickLabels(ticks);
+                    updateTicks();
+                    updateTickLabels();
                 }
 
-                plotTicks = valueToPlot(ticks);
-                ticksInside = isInside(plotTicks);
+                updatePlotTicks();
+                updateTicksInside();
             }
         }
     }
@@ -819,16 +841,23 @@ public class GAxis implements PConstants {
             if (log && (lim[0] <= 0 || lim[1] <= 0)) {
                 PApplet.println("The limits are negative. This is not allowed in logarithmic scale.");
                 PApplet.println("Will set them to (0.1, 10)");
-                lim = new float[] { 0.1f, 10 };
+
+                if (lim[1] > lim[0]) {
+                    lim[0] = 0.1f;
+                    lim[1] = 10f;
+                } else {
+                    lim[0] = 10f;
+                    lim[1] = 0.1f;
+                }
             }
 
             if (!fixedTicks) {
-                ticks = obtainTicks();
-                tickLabels = obtainTickLabels(ticks);
+                updateTicks();
+                updateTickLabels();
             }
 
-            plotTicks = valueToPlot(ticks);
-            ticksInside = isInside(plotTicks);
+            updatePlotTicks();
+            updateTicksInside();
         }
     }
 
@@ -878,10 +907,10 @@ public class GAxis implements PConstants {
 
             if (!log) {
                 fixedTicks = false;
-                ticks = obtainTicks();
-                plotTicks = valueToPlot(ticks);
-                ticksInside = isInside(plotTicks);
-                tickLabels = obtainTickLabels(ticks);
+                updateTicks();
+                updatePlotTicks();
+                updateTicksInside();
+                updateTickLabels();
             }
         }
     }
@@ -897,10 +926,10 @@ public class GAxis implements PConstants {
 
         if (!log) {
             fixedTicks = false;
-            ticks = obtainTicks();
-            plotTicks = valueToPlot(ticks);
-            ticksInside = isInside(plotTicks);
-            tickLabels = obtainTickLabels(ticks);
+            updateTicks();
+            updatePlotTicks();
+            updateTicksInside();
+            updateTickLabels();
         }
     }
 
@@ -911,13 +940,17 @@ public class GAxis implements PConstants {
      *            the new axis ticks
      */
     public void setTicks(float[] newTicks) {
-        if (newTicks != null) {
-            fixedTicks = true;
-            ticks = newTicks.clone();
-            plotTicks = valueToPlot(ticks);
-            ticksInside = isInside(plotTicks);
-            tickLabels = obtainTickLabels(ticks);
+        fixedTicks = true;
+        int n = newTicks.length;
+        adaptSize(ticks, n);
+
+        for (int i = 0; i < n; i++) {
+            ticks.set(i, newTicks[i]);
         }
+
+        updatePlotTicks();
+        updateTicksInside();
+        updateTickLabels();
     }
 
     /**
@@ -927,9 +960,12 @@ public class GAxis implements PConstants {
      *            the new axis ticks labels
      */
     public void setTickLabels(String[] newTickLabels) {
-        if (newTickLabels.length == tickLabels.length) {
+        if (newTickLabels.length == tickLabels.size()) {
             fixedTicks = true;
-            tickLabels = newTickLabels.clone();
+
+            for (int i = 0; i < tickLabels.size(); i++) {
+                tickLabels.set(i, newTickLabels[i]);
+            }
         }
     }
 
@@ -944,10 +980,10 @@ public class GAxis implements PConstants {
             fixedTicks = newFixedTicks;
 
             if (!fixedTicks) {
-                ticks = obtainTicks();
-                plotTicks = valueToPlot(ticks);
-                ticksInside = isInside(plotTicks);
-                tickLabels = obtainTickLabels(ticks);
+                updateTicks();
+                updatePlotTicks();
+                updateTicksInside();
+                updateTickLabels();
             }
         }
     }
@@ -981,10 +1017,7 @@ public class GAxis implements PConstants {
     public void setExpTickLabels(boolean newExpTickLabels) {
         if (newExpTickLabels != expTickLabels) {
             expTickLabels = newExpTickLabels;
-
-            if (!fixedTicks) {
-                tickLabels = obtainTickLabels(ticks);
-            }
+            updateTickLabels();
         }
     }
 
@@ -1113,7 +1146,13 @@ public class GAxis implements PConstants {
      */
     public float[] getTicks() {
         if (fixedTicks) {
-            return ticks.clone();
+            float[] a = new float[ticks.size()];
+
+            for (int i = 0; i < ticks.size(); i++) {
+                a[i] = ticks.get(i);
+            }
+
+            return a;
         } else {
             return removeOutsideTicks();
         }
@@ -1124,7 +1163,7 @@ public class GAxis implements PConstants {
      * 
      * @return the axis ticks
      */
-    public float[] getTicksRef() {
+    public ArrayList<Float> getTicksRef() {
         return ticks;
     }
 
@@ -1135,7 +1174,13 @@ public class GAxis implements PConstants {
      */
     public float[] getPlotTicks() {
         if (fixedTicks) {
-            return plotTicks.clone();
+            float[] a = new float[plotTicks.size()];
+
+            for (int i = 0; i < plotTicks.size(); i++) {
+                a[i] = plotTicks.get(i);
+            }
+
+            return a;
         } else {
             return removeOutsidePlotTicks();
         }
@@ -1146,7 +1191,7 @@ public class GAxis implements PConstants {
      * 
      * @return the axis ticks positions in the plot reference system
      */
-    public float[] getPlotTicksRef() {
+    public ArrayList<Float> getPlotTicksRef() {
         return plotTicks;
     }
 
