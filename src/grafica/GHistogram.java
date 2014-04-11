@@ -391,6 +391,20 @@ public class GHistogram implements PConstants {
     }
 
     /**
+     * Adds a new plot point to the histogram
+     * 
+     * @param index
+     *            the position to add the point
+     * @param newPlotPoint
+     *            the new point position in the plot reference system
+     */
+    public void addPlotPoint(int index, GPoint newPlotPoint) {
+        plotPoints.add(index, newPlotPoint);
+        initializeArrays(plotPoints.getNPoints());
+        updateArrays();
+    }
+
+    /**
      * Adds a new plot points to the histogram
      * 
      * @param newPlotPoints

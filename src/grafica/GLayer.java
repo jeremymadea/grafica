@@ -444,18 +444,18 @@ public class GLayer implements PConstants {
     }
 
     /**
-     * Returns the closest point (if any) to a given position in the plot
-     * reference system
+     * Returns the position index of the closest point (if any) to a given
+     * position in the plot reference system
      * 
      * @param xPlot
      *            x position in the plot reference system
      * @param yPlot
      *            y position in the plot reference system
      * 
-     * @return the closest point to the specified position. Returns null if
-     *         there is no close point.
+     * @return the position index of closest point to the specified position.
+     *         Returns -1 if there is no close point.
      */
-    public GPoint getPointAtPlotPos(float xPlot, float yPlot) {
+    public int getPointIndexAtPlotPos(float xPlot, float yPlot) {
         int pointIndex = -1;
 
         if (isInside(xPlot, yPlot)) {
@@ -473,6 +473,24 @@ public class GLayer implements PConstants {
                 }
             }
         }
+
+        return pointIndex;
+    }
+
+    /**
+     * Returns the closest point (if any) to a given position in the plot
+     * reference system
+     * 
+     * @param xPlot
+     *            x position in the plot reference system
+     * @param yPlot
+     *            y position in the plot reference system
+     * 
+     * @return the closest point to the specified position. Returns null if
+     *         there is no close point.
+     */
+    public GPoint getPointAtPlotPos(float xPlot, float yPlot) {
+        int pointIndex = getPointIndexAtPlotPos(xPlot, yPlot);
 
         return (pointIndex >= 0) ? points.get(pointIndex) : null;
     }
@@ -2040,6 +2058,54 @@ public class GLayer implements PConstants {
      */
     public void addPoint(GPoint newPoint) {
         addPoint(newPoint.getX(), newPoint.getY(), newPoint.getLabel());
+    }
+
+    /**
+     * Adds a new point to the layer points
+     * 
+     * @param index
+     *            the position to add the point
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     * @param label
+     *            the new point label
+     */
+    public void addPoint(int index, float x, float y, String label) {
+        points.add(index, x, y, label);
+        plotPoints.add(index, valueToXPlot(x), valueToYPlot(y), label);
+        inside.add(index, isInside(plotPoints.getLastPoint()));
+
+        if (hist != null) {
+            hist.addPlotPoint(index, plotPoints.getLastPoint());
+        }
+    }
+
+    /**
+     * Adds a new point to the layer points
+     * 
+     * @param index
+     *            the position to add the point
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     */
+    public void addPoint(int index, float x, float y) {
+        addPoint(index, x, y, "");
+    }
+
+    /**
+     * Adds a new point to the layer points
+     * 
+     * @param index
+     *            the position to add the point
+     * @param newPoint
+     *            the point to add
+     */
+    public void addPoint(int index, GPoint newPoint) {
+        addPoint(index, newPoint.getX(), newPoint.getY(), newPoint.getLabel());
     }
 
     /**

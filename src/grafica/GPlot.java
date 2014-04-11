@@ -404,6 +404,70 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Adds a point to the main layer at a given screen position
+     * 
+     * @param xScreen
+     *            x screen position in the parent Processing applet
+     * @param yScreen
+     *            y screen position in the parent Processing applet
+     */
+    public void addPointAt(float xScreen, float yScreen) {
+        float[] value = getValueAt(xScreen, yScreen);
+        addPoint(value[0], value[1]);
+    }
+
+    /**
+     * Adds a point to the specified layer at a given screen position
+     * 
+     * @param xScreen
+     *            x screen position in the parent Processing applet
+     * @param yScreen
+     *            y screen position in the parent Processing applet
+     * @param layerId
+     *            the layer id
+     */
+    public void addPointAt(float xScreen, float yScreen, String layerId) {
+        float[] value = getValueAt(xScreen, yScreen);
+        addPoint(value[0], value[1], layerId);
+    }
+
+    /**
+     * Removes a point from the main layer at a given screen position
+     * 
+     * @param xScreen
+     *            x screen position in the parent Processing applet
+     * @param yScreen
+     *            y screen position in the parent Processing applet
+     */
+    public void removePointAt(float xScreen, float yScreen) {
+        float[] plotPos = getPlotPosAt(xScreen, yScreen);
+        int pointIndex = mainLayer.getPointIndexAtPlotPos(plotPos[0], plotPos[1]);
+
+        if (pointIndex >= 0) {
+            removePoint(pointIndex);
+        }
+    }
+
+    /**
+     * Removes a point from the specified layer at a given screen position
+     * 
+     * @param xScreen
+     *            x screen position in the parent Processing applet
+     * @param yScreen
+     *            y screen position in the parent Processing applet
+     * @param layerId
+     *            the layer id
+     */
+    public void removePointAt(float xScreen, float yScreen, String layerId) {
+        float[] plotPos = getPlotPosAt(xScreen, yScreen);
+        int pointIndex = getLayer(layerId).getPointIndexAtPlotPos(plotPos[0], plotPos[1]);
+
+        if (pointIndex >= 0) {
+            removePoint(pointIndex, layerId);
+        }
+    }
+
+    /**
      * Returns the plot value at a given screen position
      * 
      * @param xScreen
@@ -1802,6 +1866,13 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Inverts the horizontal axes scale
+     */
+    public void invertXScale() {
+        setInvertedXScale(!invertedXScale);
+    }
+
+    /**
      * Sets if the scale of the vertical axes should be inverted or not
      * 
      * @param newInvertedYScale
@@ -1825,6 +1896,13 @@ public class GPlot implements PConstants {
                 layerList.get(i).setYLim(yLim);
             }
         }
+    }
+
+    /**
+     * Inverts the vertical axes scale
+     */
+    public void invertYScale() {
+        setInvertedYScale(!invertedYScale);
     }
 
     /**
@@ -1930,10 +2008,7 @@ public class GPlot implements PConstants {
      *            the new points for the main layer
      */
     public void setPoints(GPointsArray points) {
-        // Add the points to the main layer
         mainLayer.setPoints(points);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -1946,10 +2021,7 @@ public class GPlot implements PConstants {
      *            the layer id
      */
     public void setPoints(GPointsArray points, String layerId) {
-        // Add the points to the layer
         getLayer(layerId).setPoints(points);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -1967,8 +2039,6 @@ public class GPlot implements PConstants {
      */
     public void setPoint(int index, float x, float y, String label) {
         mainLayer.setPoint(index, x, y, label);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -1988,8 +2058,6 @@ public class GPlot implements PConstants {
      */
     public void setPoint(int index, float x, float y, String label, String layerId) {
         getLayer(layerId).setPoint(index, x, y, label);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2005,8 +2073,6 @@ public class GPlot implements PConstants {
      */
     public void setPoint(int index, float x, float y) {
         mainLayer.setPoint(index, x, y);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2020,8 +2086,6 @@ public class GPlot implements PConstants {
      */
     public void setPoint(int index, GPoint newPoint) {
         mainLayer.setPoint(index, newPoint);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2037,8 +2101,6 @@ public class GPlot implements PConstants {
      */
     public void setPoint(int index, GPoint newPoint, String layerId) {
         getLayer(layerId).setPoint(index, newPoint);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2054,8 +2116,6 @@ public class GPlot implements PConstants {
      */
     public void addPoint(float x, float y, String label) {
         mainLayer.addPoint(x, y, label);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2073,8 +2133,6 @@ public class GPlot implements PConstants {
      */
     public void addPoint(float x, float y, String label, String layerId) {
         getLayer(layerId).addPoint(x, y, label);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2088,8 +2146,6 @@ public class GPlot implements PConstants {
      */
     public void addPoint(float x, float y) {
         mainLayer.addPoint(x, y);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2101,8 +2157,6 @@ public class GPlot implements PConstants {
      */
     public void addPoint(GPoint newPoint) {
         mainLayer.addPoint(newPoint);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2116,8 +2170,85 @@ public class GPlot implements PConstants {
      */
     public void addPoint(GPoint newPoint, String layerId) {
         getLayer(layerId).addPoint(newPoint);
+        updateLimits();
+    }
 
-        // Update the plot limits
+    /**
+     * Adds a new point to the main layer points
+     * 
+     * @param index
+     *            the position to add the point
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     * @param label
+     *            the new point label
+     */
+    public void addPoint(int index, float x, float y, String label) {
+        mainLayer.addPoint(index, x, y, label);
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the specified layer points
+     * 
+     * @param index
+     *            the position to add the point
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     * @param label
+     *            the new point label
+     * @param layerId
+     *            the layer id
+     */
+    public void addPoint(int index, float x, float y, String label, String layerId) {
+        getLayer(layerId).addPoint(index, x, y, label);
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the main layer points
+     * 
+     * @param index
+     *            the position to add the point
+     * @param x
+     *            the new point x coordinate
+     * @param y
+     *            the new point y coordinate
+     */
+    public void addPoint(int index, float x, float y) {
+        mainLayer.addPoint(index, x, y);
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the main layer points
+     * 
+     * @param index
+     *            the position to add the point
+     * @param newPoint
+     *            the point to add
+     */
+    public void addPoint(int index, GPoint newPoint) {
+        mainLayer.addPoint(index, newPoint);
+        updateLimits();
+    }
+
+    /**
+     * Adds a new point to the specified layer points
+     * 
+     * @param index
+     *            the position to add the point
+     * @param newPoint
+     *            the point to add
+     * @param layerId
+     *            the layer id
+     */
+    public void addPoint(int index, GPoint newPoint, String layerId) {
+        getLayer(layerId).addPoint(index, newPoint);
         updateLimits();
     }
 
@@ -2129,8 +2260,6 @@ public class GPlot implements PConstants {
      */
     public void addPoints(GPointsArray newPoints) {
         mainLayer.addPoints(newPoints);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2144,8 +2273,6 @@ public class GPlot implements PConstants {
      */
     public void addPoints(GPointsArray newPoints, String layerId) {
         getLayer(layerId).addPoints(newPoints);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2157,8 +2284,6 @@ public class GPlot implements PConstants {
      */
     public void removePoint(int index) {
         mainLayer.removePoint(index);
-
-        // Update the plot limits
         updateLimits();
     }
 
@@ -2172,8 +2297,6 @@ public class GPlot implements PConstants {
      */
     public void removePoint(int index, String layerId) {
         getLayer(layerId).removePoint(index);
-
-        // Update the plot limits
         updateLimits();
     }
 

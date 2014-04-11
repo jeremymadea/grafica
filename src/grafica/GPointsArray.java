@@ -226,6 +226,74 @@ public class GPointsArray {
     }
 
     /**
+     * Adds a new point to the array
+     * 
+     * @param index
+     *            the point position
+     * @param point
+     *            the point
+     */
+    public void add(int index, GPoint point) {
+        points.add(index, new GPoint(point));
+    }
+
+    /**
+     * Adds a new point to the array
+     * 
+     * @param index
+     *            the point position
+     * @param x
+     *            the point x coordinate
+     * @param y
+     *            the point y coordinate
+     * @param label
+     *            the point text label
+     */
+    public void add(int index, float x, float y, String label) {
+        points.add(index, new GPoint(x, y, label));
+    }
+
+    /**
+     * Adds a new point to the array
+     * 
+     * @param index
+     *            the point position
+     * @param x
+     *            the point x coordinate
+     * @param y
+     *            the point y coordinate
+     */
+    public void add(int index, float x, float y) {
+        points.add(index, new GPoint(x, y));
+    }
+
+    /**
+     * Adds a new point to the array
+     * 
+     * @param index
+     *            the point position
+     * @param v
+     *            the Processing vector with the point x and y coordinates
+     * @param label
+     *            the point text label
+     */
+    public void add(int index, PVector v, String label) {
+        points.add(index, new GPoint(v, label));
+    }
+
+    /**
+     * Adds a new point to the array
+     * 
+     * @param index
+     *            the point position
+     * @param v
+     *            the Processing vector with the point x and y coordinates
+     */
+    public void add(int index, PVector v) {
+        points.add(index, new GPoint(v));
+    }
+
+    /**
      * Adds a new set of points to the array
      * 
      * @param pts
