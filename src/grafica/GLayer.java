@@ -2170,6 +2170,16 @@ public class GLayer implements PConstants {
     }
 
     /**
+     * Sets the points color
+     * 
+     * @param newPointColor
+     *            the new point color
+     */
+    public void setPointColor(int newPointColor) {
+        pointColors = new int[] { newPointColor };
+    }
+
+    /**
      * Sets the points sizes
      * 
      * @param newPointSizes
@@ -2179,6 +2189,16 @@ public class GLayer implements PConstants {
         if (newPointSizes.length > 0) {
             pointSizes = newPointSizes.clone();
         }
+    }
+
+    /**
+     * Sets the points size
+     * 
+     * @param newPointSize
+     *            the new point size
+     */
+    public void setPointSize(float newPointSize) {
+        pointSizes = new float[] { newPointSize };
     }
 
     /**

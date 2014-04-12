@@ -1,16 +1,16 @@
 
 import grafica.*;
 
-String[] monthNames = new String[]{"January","February","March","April","May","June","July",
-                                   "August","September","October","November","December"};
-int[] daysPerMonth = new int[]{31,28,31,30,31,30,31,31,30,31,30,31};
-int[] daysPerMonthLeapYear = new int[]{31,29,31,30,31,30,31,31,30,31,30,31};
+String[] monthNames = new String[] {"January", "February", "March", "April", "May", "June", "July", 
+                                     "August", "September", "October", "November", "December"};
+int[] daysPerMonth = new int[] {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+int[] daysPerMonthLeapYear = new int[] {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 GPlot plot;
 
-void setup(){
+void setup() {
   size(800, 400);
-  
+
   // Load the Oktoberfest vs. Bundestagswahl (German elections day) Google 
   // search history file (obtained from the Google trends page). 
   // The csv file has the following format: 
@@ -23,11 +23,11 @@ void setup(){
   table.setColumnType("day", Table.INT);
   table.setColumnType("oktoberfest", Table.INT);
   table.setColumnType("bundestagswahl", Table.INT);
-    
+
   // Save the data in two GPointsArrays
   GPointsArray pointsOktoberfest = new GPointsArray();
   GPointsArray pointsElections = new GPointsArray();
-  
+
   for (int row = 0; row < table.getRowCount(); row++) {
     int year = table.getInt(row, "year");
     int month = table.getInt(row, "month");
@@ -35,7 +35,7 @@ void setup(){
     float date = getExactDate(year, month, day);
     int oktoberfestCount = table.getInt(row, "oktoberfest");
     int electionsCount = table.getInt(row, "bundestagswahl");
-    
+
     pointsOktoberfest.add(date, oktoberfestCount, monthNames[month]);
     pointsElections.add(date, electionsCount, monthNames[month]);
   }
@@ -54,9 +54,9 @@ void setup(){
   plot.activatePointLabels();
 }
 
-void draw(){
+void draw() {
   background(255);
-  
+
   // Draw the plot  
   plot.beginDraw();
   plot.drawBox();
@@ -65,32 +65,31 @@ void draw(){
   plot.drawTitle();
   plot.drawGridLines(GPlot.VERTICAL);
   plot.drawFilledContours(GPlot.HORIZONTAL, 0);
-  plot.drawLegend(new String[]{"Oktoberfest","Bundestagswahl"}, 
-                  new float[]{0.07,0.22}, 
-                  new float[]{0.92, 0.92});
+  plot.drawLegend(new String[] {"Oktoberfest", "Bundestagswahl"}, new float[] {0.07, 0.22}, 
+                  new float[] {0.92, 0.92});
   plot.drawLabels();
   plot.endDraw();
 }  
 
 
 // Not really the exact date, but it's ok for this example
-float getExactDate(int year, int month, int day){
+float getExactDate(int year, int month, int day) {
   boolean leapYear = false;
-  
-  if(year % 400 == 0){
+
+  if (year % 400 == 0) {
     leapYear = true;
   }
-  else if(year % 100 == 0){
+  else if (year % 100 == 0) {
     leapYear = false;
   }
-  else if(year % 4 == 0){
+  else if (year % 4 == 0) {
     leapYear = true;
   }
-  
-  if(leapYear){
+
+  if (leapYear) {
     return year + (month + (day - 1f)/daysPerMonthLeapYear[month])/12f;
   }
-  else{
+  else {
     return year + (month + (day - 1f)/daysPerMonth[month])/12f;
   }
 }

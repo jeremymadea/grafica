@@ -2311,6 +2311,16 @@ public class GPlot implements PConstants {
     }
 
     /**
+     * Sets the point color for the main layer
+     * 
+     * @param pointColor
+     *            the point color for the main layer
+     */
+    public void setPointColor(int pointColor) {
+        mainLayer.setPointColor(pointColor);
+    }
+
+    /**
      * Sets the point sizes for the main layer
      * 
      * @param pointSizes
@@ -2318,6 +2328,16 @@ public class GPlot implements PConstants {
      */
     public void setPointSizes(float[] pointSizes) {
         mainLayer.setPointSizes(pointSizes);
+    }
+
+    /**
+     * Sets the point size for the main layer
+     * 
+     * @param pointSize
+     *            the point sizes for the main layer
+     */
+    public void setPointSize(float pointSize) {
+        mainLayer.setPointSize(pointSize);
     }
 
     /**
