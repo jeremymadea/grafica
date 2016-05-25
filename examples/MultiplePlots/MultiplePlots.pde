@@ -13,7 +13,7 @@ public PShape star;
 public Random r;
 
 public void setup() {
-  size(850, 650);
+  size(850, 660);
 
   // Prepare the points for the first plot  
   GPointsArray points1a = new GPointsArray(500);
