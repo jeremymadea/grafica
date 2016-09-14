@@ -1423,7 +1423,6 @@ public class GLayer implements PConstants {
 
 			parent.pushStyle();
 			parent.rectMode(CORNER);
-			parent.textMode(MODEL);
 			parent.noStroke();
 			parent.textFont(font);
 			parent.textSize(fontSize);
@@ -1575,7 +1574,6 @@ public class GLayer implements PConstants {
 			}
 
 			parent.pushStyle();
-			parent.textMode(MODEL);
 			parent.textFont(font);
 			parent.textSize(fontSize);
 			parent.fill(fontColor);

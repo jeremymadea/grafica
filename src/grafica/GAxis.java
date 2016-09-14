@@ -513,7 +513,6 @@ public class GAxis implements PConstants {
 	 */
 	protected void drawAsXAxis() {
 		parent.pushStyle();
-		parent.textMode(MODEL);
 		parent.textFont(font);
 		parent.textSize(fontSize);
 		parent.fill(fontColor);
@@ -567,7 +566,6 @@ public class GAxis implements PConstants {
 	 */
 	protected void drawAsYAxis() {
 		parent.pushStyle();
-		parent.textMode(MODEL);
 		parent.textFont(font);
 		parent.textSize(fontSize);
 		parent.fill(fontColor);
@@ -621,7 +619,6 @@ public class GAxis implements PConstants {
 	 */
 	protected void drawAsTopAxis() {
 		parent.pushStyle();
-		parent.textMode(MODEL);
 		parent.textFont(font);
 		parent.textSize(fontSize);
 		parent.fill(fontColor);
@@ -679,7 +676,6 @@ public class GAxis implements PConstants {
 	 */
 	protected void drawAsRightAxis() {
 		parent.pushStyle();
-		parent.textMode(MODEL);
 		parent.textFont(font);
 		parent.textSize(fontSize);
 		parent.fill(fontColor);

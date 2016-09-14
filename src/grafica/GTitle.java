@@ -81,7 +81,6 @@ public class GTitle implements PConstants {
 	 */
 	public void draw() {
 		parent.pushStyle();
-		parent.textMode(MODEL);
 		parent.textFont(font);
 		parent.textSize(fontSize);
 		parent.fill(fontColor);
