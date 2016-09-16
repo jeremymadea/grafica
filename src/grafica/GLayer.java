@@ -550,7 +550,7 @@ public class GLayer implements PConstants {
 						if (nCuts == 0) {
 							nCuts = 1;
 							cuts[0][0] = pointInside.getX();
-							cuts[1][0] = pointInside.getY();
+							cuts[0][1] = pointInside.getY();
 						}
 					}
 				} else {
