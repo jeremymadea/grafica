@@ -1,5 +1,5 @@
-grafica is a simple and configurable plotting library for [Processing](http://processing.org).
-With it you can easily create 2D plots that will enjoy the full interactive capabilities of Processing. 
+Graphantastic is a plotting library for [Processing](http://processing.org).
+With it you can create interactive 2D plots.
 
 
 ## Main features
@@ -13,10 +13,11 @@ With it you can easily create 2D plots that will enjoy the full interactive capa
   * Add labels to your points and display them with one click.
   * You can use svg files and PShapes to represent your points.
   * Highly customizable. Defaults are nice, but you can tweak almost everything.
-  * Processing coding style. If you are used to work with Processing, grafica will be very easy.
-  * It comes with a good set of [examples](http://jagracar.com/grafica.php).
-  * It's open source. grafica is under the GNU Lesser General Public License. You can find the complete source code [here](https://github.com/jagracar/grafica/tree/master/src/grafica).
+  * Processing coding style. If you are used to work with Processing, 
+    graphantastic will be very easy.
+  * It comes with a good set of examples.
+  * It's open source. grafica is under the GNU Lesser General Public License. You can find the complete source code [here](https://github.com/jeremymadea/graphantastic/tree/master/src/grafica).
 
 ## Installation
 
-Download the [latest library release](https://raw.github.com/jagracar/grafica/master/releases/grafica.zip) and follow the steps described in the [Processing wiki](https://github.com/processing/processing/wiki/How-to-Install-a-Contributed-Library).
+Download the [latest library release](https://raw.github.com/jeremymadea/graphantastic/master/releases/graphantastic.zip) and follow the steps described in the [Processing wiki](https://github.com/processing/processing/wiki/How-to-Install-a-Contributed-Library).
