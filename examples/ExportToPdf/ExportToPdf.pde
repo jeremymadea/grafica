@@ -1,6 +1,6 @@
 
 import processing.pdf.*;
-import grafica.*;
+import graphantastic.*;
 
 GPlot plot;
 

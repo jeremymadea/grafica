@@ -1,5 +1,5 @@
 
-import grafica.*;
+import graphantastic.*;
 import java.util.Random;
 
 public GPlot plot1, plot2, plot3, plot4;

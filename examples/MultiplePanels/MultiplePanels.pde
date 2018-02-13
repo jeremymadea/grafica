@@ -1,5 +1,5 @@
 
-import grafica.*;
+import graphantastic.*;
 
 void setup() {
   size(500, 510);

@@ -1,5 +1,5 @@
 
-import grafica.*;
+import graphantastic.*;
  
 GPlot plot1, plot2;
  

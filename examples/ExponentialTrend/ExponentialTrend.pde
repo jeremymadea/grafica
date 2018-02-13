@@ -1,5 +1,5 @@
 
-import grafica.*;
+import graphantastic.*;
 import java.util.Random;
 
 GPlot plot;

@@ -5,7 +5,7 @@
  * http://lisacharlotterost.github.io/2016/05/17/one-chart-code/
  */
 
-import grafica.*;
+import graphantastic.*;
 
 GPlot plot;
 
