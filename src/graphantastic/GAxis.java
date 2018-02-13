@@ -25,7 +25,7 @@
  * @version     ##library.prettyVersion## (##library.version##)
  */
 
-package grafica;
+package graphantastic;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

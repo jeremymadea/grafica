@@ -25,7 +25,7 @@
  * @version     ##library.prettyVersion## (##library.version##)
  */
 
-package grafica;
+package graphantastic;
 
 import processing.core.PVector;
 

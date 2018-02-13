@@ -25,7 +25,7 @@
  * @version     ##library.prettyVersion## (##library.version##)
  */
 
-package grafica;
+package graphantastic;
 
 import java.util.ArrayList;
 import processing.core.PApplet;
