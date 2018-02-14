@@ -786,7 +786,7 @@ public class GPlot implements PConstants {
 			float deltaLim = (xLim[1] - xLim[0]) / (2 * factor);
 			xLim = new float[] { xValue - deltaLim, xValue + deltaLim };
 		}
-
+/*
 		if (yLog) {
 			float deltaLim = PApplet.exp(PApplet.log(yLim[1] / yLim[0]) / (2 * factor));
 			yLim = new float[] { yValue / deltaLim, yValue * deltaLim };
@@ -794,7 +794,7 @@ public class GPlot implements PConstants {
 			float deltaLim = (yLim[1] - yLim[0]) / (2 * factor);
 			yLim = new float[] { yValue - deltaLim, yValue + deltaLim };
 		}
-
+*/
 		// Fix the limits
 		fixedXLim = true;
 		fixedYLim = true;
@@ -802,8 +802,8 @@ public class GPlot implements PConstants {
 		// Update the horizontal and vertical axes
 		xAxis.setLim(xLim);
 		topAxis.setLim(xLim);
-		yAxis.setLim(yLim);
-		rightAxis.setLim(yLim);
+//		yAxis.setLim(yLim);
+//		rightAxis.setLim(yLim);
 
 		// Update the plot limits (the layers, because the limits are fixed)
 		updateLimits();
@@ -840,6 +840,59 @@ public class GPlot implements PConstants {
 			float offset = 2 * deltaLim * (0.5f - plotPos[0] / dim[0]);
 			xLim = new float[] { value[0] + offset - deltaLim, value[0] + offset + deltaLim };
 		}
+/*
+		if (yLog) {
+			float deltaLim = PApplet.exp(PApplet.log(yLim[1] / yLim[0]) / (2 * factor));
+			float offset = PApplet.exp((PApplet.log(yLim[1] / yLim[0]) / factor) * (0.5f + plotPos[1] / dim[1]));
+			yLim = new float[] { value[1] * offset / deltaLim, value[1] * offset * deltaLim };
+		} else {
+			float deltaLim = (yLim[1] - yLim[0]) / (2 * factor);
+			float offset = 2 * deltaLim * (0.5f + plotPos[1] / dim[1]);
+			yLim = new float[] { value[1] + offset - deltaLim, value[1] + offset + deltaLim };
+		}
+*/
+		// Fix the limits
+		fixedXLim = true;
+//		fixedYLim = true;
+
+		// Update the horizontal and vertical axes
+		xAxis.setLim(xLim);
+		topAxis.setLim(xLim);
+//		yAxis.setLim(yLim);
+//		rightAxis.setLim(yLim);
+
+		// Update the plot limits (the layers, because the limits are fixed)
+		updateLimits();
+	}
+	
+	public void zoomX(float factor, float xScreen, float yScreen) {
+		float[] plotPos = getPlotPosAt(xScreen, yScreen);
+		float[] value = mainLayer.plotToValue(plotPos[0], plotPos[1]);
+
+		if (xLog) {
+			float deltaLim = PApplet.exp(PApplet.log(xLim[1] / xLim[0]) / (2 * factor));
+			float offset = PApplet.exp((PApplet.log(xLim[1] / xLim[0]) / factor) * (0.5f - plotPos[0] / dim[0]));
+			xLim = new float[] { value[0] * offset / deltaLim, value[0] * offset * deltaLim };
+		} else {
+			float deltaLim = (xLim[1] - xLim[0]) / (2 * factor);
+			float offset = 2 * deltaLim * (0.5f - plotPos[0] / dim[0]);
+			xLim = new float[] { value[0] + offset - deltaLim, value[0] + offset + deltaLim };
+		}
+
+		// Fix the limits
+		fixedXLim = true;
+
+		// Update the horizontal and vertical axes
+		xAxis.setLim(xLim);
+		topAxis.setLim(xLim);
+
+		// Update the plot limits (the layers, because the limits are fixed)
+		updateLimits();		
+	}
+	
+	public void zoomY(float factor, float xScreen, float yScreen) {
+		float[] plotPos = getPlotPosAt(xScreen, yScreen);
+		float[] value = mainLayer.plotToValue(plotPos[0], plotPos[1]);
 
 		if (yLog) {
 			float deltaLim = PApplet.exp(PApplet.log(yLim[1] / yLim[0]) / (2 * factor));
@@ -852,19 +905,16 @@ public class GPlot implements PConstants {
 		}
 
 		// Fix the limits
-		fixedXLim = true;
 		fixedYLim = true;
 
-		// Update the horizontal and vertical axes
-		xAxis.setLim(xLim);
-		topAxis.setLim(xLim);
+		// Update the Y axis
 		yAxis.setLim(yLim);
 		rightAxis.setLim(yLim);
 
 		// Update the plot limits (the layers, because the limits are fixed)
 		updateLimits();
 	}
-
+	
 	/**
 	 * Shifts the plot coordinates in a way that the value at a given plot position will have after that the specified
 	 * new plot position
@@ -2850,7 +2900,7 @@ public class GPlot implements PConstants {
 	}
 
 	/**
-	 * Mouse events (zooming, centering, panning, labeling)
+	 * Mouse   s (zooming, centering, panning, labeling)
 	 * 
 	 * @param event the mouse event detected by the processing applet
 	 */
@@ -2875,7 +2925,13 @@ public class GPlot implements PConstants {
 						}
 
 						if (wheelCounter <= 0) {
-							zoom(zoomFactor, xMouse, yMouse);
+							if ((modifiers & ALTMOD) != 0) { 
+							    zoom(zoomFactor, xMouse, yMouse);
+							} else if ((modifiers & CTRLMOD) != 0) { 
+							    zoomY(zoomFactor, xMouse, yMouse);
+							} else {
+								zoomX(zoomFactor, xMouse,yMouse);
+							}
 						}
 					}
 				}
@@ -2891,8 +2947,16 @@ public class GPlot implements PConstants {
 						}
 
 						if (wheelCounter >= 0) {
-							zoom(1 / zoomFactor, xMouse, yMouse);
-						}
+							if ((modifiers & ALTMOD) != 0) { 
+							    zoom(1/zoomFactor, xMouse, yMouse);
+							} else if ((modifiers & CTRLMOD) != 0) { 
+							    zoomY(1/zoomFactor, xMouse, yMouse);
+							} else {
+								zoomX(1/zoomFactor, xMouse,yMouse);
+							}
+						}						
+						
+						
 					}
 				}
 			}
